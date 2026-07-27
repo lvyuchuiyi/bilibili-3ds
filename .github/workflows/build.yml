@@ -1,40 +1,50 @@
 name: Build BiliBili 3DS
 on:
-  push: { branches: [ "main", "master" ] }
+  push:
+    branches: [ "main", "master" ]
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: { image: devkitpro/devkitarm:latest }
+    container:
+      image: devkitpro/devkitarm:latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install makerom (dkp-pacman first, fallback binary)
+
+    - name: Install makerom
       run: |
-        echo "=== dkp-pacman ==="
-        dkp-pacman -S --noconfirm general-tools 2>&1 && echo "DKP_OK" || echo "DKP_FAIL"
-        if command -v makerom >/dev/null 2>&1; then
-          echo "makerom installed via dkp-pacman"
+        echo "=== Installing makerom via dkp-pacman ==="
+        dkp-pacman -S --noconfirm general-tools 2>&1 || true
+        echo "=== Searching for makerom ==="
+        find /opt/devkitpro -name "makerom" 2>/dev/null
+        if [ -f /opt/devkitpro/tools/bin/makerom ]; then
+          echo "Using dkp-pacman makerom"
+          export PATH=/opt/devkitpro/tools/bin:$PATH
+        elif command -v makerom >/dev/null 2>&1; then
+          echo "makerom found in PATH"
         else
           echo "Downloading makerom binary..."
           curl -sL -o /tmp/m.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.4/makerom-v0.18.4-ubuntu_x86_64.zip
           unzip -o /tmp/m.zip -d /tmp/m
           cp /tmp/m/makerom /usr/local/bin/
           chmod +x /usr/local/bin/makerom
-          echo "makerom binary ready"
         fi
-        makerom -help 2>&1 | head -5
+        which makerom
+        makerom -help 2>&1 | head -3
     - name: Build
       run: |
         make -j$(nproc)
-        echo "BUILD_DONE"
         ELF=$(find . -name "*.elf" | head -1)
         SMDH=$(find . -name "*.smdh" | head -1)
-        echo "ELF=$ELF SMDH=$SMDH"
         makerom -f cia -o bilibili3ds.cia -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf 2>&1 || true
-        ls -la *.cia 2>/dev/null || echo "NO_CIA"
+        ls -la *.3dsx *.cia *.smdh 2>/dev/null
+
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: bilibili3ds-build
-        path: "*.3dsx;*.cia;*.smdh"
+        path: |
+          *.3dsx
+          *.cia
+          *.smdh
         if-no-files-found: warn

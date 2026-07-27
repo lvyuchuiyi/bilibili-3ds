@@ -109,7 +109,7 @@ AccessControlInfo:
    - am:net
 
 SystemControlInfo:
-  SaveDataSize                : 0
+  SaveDataSize                : 0K
   RemasterVersion             : 0
   StackSize                   : 0x100000
 
