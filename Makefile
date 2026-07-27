@@ -32,7 +32,7 @@ CFLAGS += $(INCLUDE) -D__3DS__
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS := -g $(ARCH)
-LDFLAGS  = -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS  = -specs=nosys.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,-Ttext=0x00100000
 
 LIBS := -lcitro2d -lcitro3d -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm -lz
 
@@ -114,7 +114,7 @@ CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 #---------------------------------------------------------------------------------
 # Main targets - actual compilation
 #---------------------------------------------------------------------------------
-$(OUTPUT).3dsx: $(OUTPUT).elf $(OUTPUT).smdh
+$(OUTPUT).3dsx: $(OUTPUT).elf
 
 $(OUTPUT).elf: $(OFILES)
 
