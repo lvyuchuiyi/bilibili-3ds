@@ -1,4 +1,4 @@
-/*
+﻿/*
  * player.c - MVD H.264 hardware video decoder for 3DS
  * Uses the new MVDSTD API: mvdstdInit, mvdstdGenerateDefaultConfig, 
  * mvdstdProcessVideoFrame, mvdstdRenderVideoFrame
@@ -32,7 +32,7 @@ int player_init(void) {
     p_info.width = 400;
     p_info.height = 240;
 
-    Result r = mvdInit();
+    /* mvdInit not needed in new libctru */
     if (R_FAILED(r)) return -1;
 
     workbuf = (u8*)linearAlloc(MVD_WORKBUF_SIZE);
@@ -40,7 +40,7 @@ int player_init(void) {
     if (!workbuf || !output_buf) {
         if (workbuf) linearFree(workbuf);
         if (output_buf) linearFree(output_buf);
-        mvdExit();
+        /* mvdExit not needed */
         return -2;
     }
 
@@ -49,7 +49,7 @@ int player_init(void) {
     if (R_FAILED(r)) {
         linearFree(workbuf);
         linearFree(output_buf);
-        mvdExit();
+        /* mvdExit not needed */
         return -3;
     }
 
@@ -69,7 +69,7 @@ void player_exit(void) {
     player_stop();
     if (mvd_initialized) {
         mvdstdExit();
-        mvdExit();
+        /* mvdExit not needed */
         if (workbuf) { linearFree(workbuf); workbuf = NULL; }
         if (output_buf) { linearFree(output_buf); output_buf = NULL; }
         mvd_initialized = false;
@@ -203,3 +203,4 @@ player_state_t player_update(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
