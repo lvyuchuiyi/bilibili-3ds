@@ -75,7 +75,7 @@ AccessControlInfo:
   ServiceAccessControl:
    - fs:USER
    - gsp::Gpu
-   - gsp::GpuShared
+
    - hid:USER
    - APT:U
    - soc:U
