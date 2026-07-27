@@ -1,0 +1,13 @@
+﻿# Build artifacts
+build/
+*.3dsx
+*.elf
+*.smdh
+*.cia
+*.map
+
+# Temp / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

@@ -1,0 +1,29 @@
+﻿name: Build BiliBili 3DS
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkitarm:latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build .3dsx and .cia
+      run: |
+        make release -j$(nproc)
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: bilibili3ds-build
+        path: |
+          *.3dsx
+          *.cia
+          *.smdh
+        if-no-files-found: warn
