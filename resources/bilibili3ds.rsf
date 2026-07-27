@@ -90,7 +90,7 @@ AccessControlInfo:
    - ac:u
 
 SystemControlInfo:
-  SaveDataSize                : 0x1000
+  SaveDataSize                : 256K
   RemasterVersion             : 0
   StackSize                   : 0x100000
 
