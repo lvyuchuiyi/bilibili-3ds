@@ -1,6 +1,12 @@
 BasicInfo:
-  Title: "BiliBili 3DS"
+  Title                   : "BiliBili 3DS"
+  ProductCode             : "BILI0001"
 
 TitleInfo:
-  TitleVersion: 1
-  ProductCode: "BILI0001"
+  Category                : Application
+  UniqueId                : 0xff3ff
+
+Option:
+  UseOnSD                 : true
+  FreeProductCode         : true
+  EnableCrypt             : false

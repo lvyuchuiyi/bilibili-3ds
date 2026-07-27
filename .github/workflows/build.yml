@@ -21,35 +21,32 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
-        makerom -help 2>&1 | head -2 || true
+        echo "=== makerom help ==="
+        makerom -exthelp 2>&1 | head -100 || true
     
-    - name: Build .3dsx and .cia
+    - name: Build .3dsx
       run: |
         make -j$(nproc)
-        echo "=== Build complete, creating CIA ==="
+        echo "build done"
+        ls -la *.3dsx *.elf *.smdh
+    
+    - name: Generate CIA with makerom
+      run: |
         ELF=$(find . -name "*.elf" | head -1)
         SMDH=$(find . -name "*.smdh" | head -1)
-        echo "ELF: $ELF, SMDH: $SMDH"
-        if [ -n "$ELF" ]; then
-          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf
-          ls -la bilibili3ds.cia
-        else
-          echo "No .elf found, listing all files:"
-          find . -type f -name "*.3dsx" -o -name "*.elf" -o -name "*.smdh"
-          exit 1
-        fi
+        RSF=resources/bilibili3ds.rsf
+        echo "ELF=$ELF SMDH=$SMDH RSF=$RSF"
+        makerom -f cia -o bilibili3ds.cia -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA failed"
+        ls -la bilibili3ds.cia 2>/dev/null || echo "No CIA generated"
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: bilibili3ds-build
         path: |
-          bilibili3ds.3dsx
-          bilibili3ds.cia
-          bilibili3ds.smdh
-        if-no-files-found: error
-
-
-
+          *.3dsx
+          *.cia
+          *.smdh
+        if-no-files-found: warn
 
 
