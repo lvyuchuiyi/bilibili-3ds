@@ -4,7 +4,7 @@ BasicInfo:
 
 TitleInfo:
   Category                : Application
-  UniqueId                : 0xff3ff
+  UniqueId                : 0x55555
 
 Option:
   UseOnSD                 : true
@@ -19,19 +19,34 @@ AccessControlInfo:
 
   FileSystemAccess:
    - DirectSdmc
+   - DirectSdmcWrite
 
   MemoryType                    : Application
   SystemMode                    : 96MB
+  SystemModeExt                 : 124MB
   IdealProcessor                : 0
   AffinityMask                  : 1
   Priority                      : 16
   MaxCpu                        : 0
   HandleTableSize               : 0x200
   DisableDebug                  : false
-  CanUseNonAlphabetAndNumber    : true
   EnableForceDebug              : false
   CanWriteSharedPage            : true
+  CanUsePrivilegedPriority      : false
+  CanUseNonAlphabetAndNumber    : true
   PermitMainFunctionArgument    : true
+  CanShareDeviceMemory          : true
+  RunnableOnSleep               : false
+  SpecialMemoryArrange          : true
+  CpuSpeed                      : 804MHz
+  EnableL2Cache                 : true
+  CanAccessCore2                : true
+
+  IORegisterMapping:
+   - 1ff00000-1ff7ffff
+
+  MemoryMapping:
+   - 1f000000-1f5fffff:r
 
   SystemCallAccess:
     ControlMemory: 1
@@ -71,11 +86,11 @@ AccessControlInfo:
     GetResourceLimitCurrentValues: 58
     GetThreadPriority: 11
     SetThreadPriority: 12
+    Backdoor: 123
 
   ServiceAccessControl:
    - fs:USER
    - gsp::Gpu
-
    - hid:USER
    - APT:U
    - soc:U
@@ -83,24 +98,31 @@ AccessControlInfo:
    - ptm:u
    - cfg:u
    - dsp:DSP
-   - ir:USER
+   - csnd:SND
+   - ir:u
    - mic:u
-   - news:u
-   - nwm::UDS
    - ac:u
+   - ndm:u
+   - nwm::UDS
+   - news:u
+   - http:C
+   - am:net
 
 SystemControlInfo:
-  SaveDataSize                : 256K
+  SaveDataSize                : 0
   RemasterVersion             : 0
   StackSize                   : 0x100000
 
   Dependency:
     ac: 0x0004013000002402
     am: 0x0004013000001502
+    boss: 0x0004013000003402
+    camera: 0x0004013000001602
     cfg: 0x0004013000001702
     codec: 0x0004013000001802
     csnd: 0x0004013000002702
     dsp: 0x0004013000001a02
+    friends: 0x0004013000003202
     fs: 0x0004013000004002
     gpio: 0x0004013000001b02
     gsp: 0x0004013000001c02
@@ -111,6 +133,7 @@ SystemControlInfo:
     mcu: 0x0004013000001f02
     mic: 0x0004013000002002
     ndm: 0x0004013000002b02
+    news: 0x0004013000003502
     nim: 0x0004013000002c02
     nwm: 0x0004013000002d02
     pdn: 0x0004013000002102
