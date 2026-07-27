@@ -9,6 +9,7 @@ TitleInfo:
 Option:
   FreeProductCode: true
   EnableCrypt: false
+  UseOnSD: false
 
 SystemControlInfo:
   StackSize: 0x100000
