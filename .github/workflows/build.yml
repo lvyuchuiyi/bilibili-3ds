@@ -11,33 +11,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install makerom
+    - name: Install tools
       run: |
-        echo "=== Installing makerom via dkp-pacman ==="
         dkp-pacman -S --noconfirm general-tools 2>&1 || true
-        echo "=== Searching for makerom ==="
-        find /opt/devkitpro -name "makerom" 2>/dev/null
-        if [ -f /opt/devkitpro/tools/bin/makerom ]; then
-          echo "Using dkp-pacman makerom"
-          export PATH=/opt/devkitpro/tools/bin:$PATH
-        elif command -v makerom >/dev/null 2>&1; then
-          echo "makerom found in PATH"
-        else
-          echo "Downloading makerom binary..."
-          curl -sL -o /tmp/m.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.4/makerom-v0.18.4-ubuntu_x86_64.zip
-          unzip -o /tmp/m.zip -d /tmp/m
-          cp /tmp/m/makerom /usr/local/bin/
-          chmod +x /usr/local/bin/makerom
+        if ! command -v makerom >/dev/null 2>&1; then
+          which makerom 2>/dev/null || find / -name makerom 2>/dev/null
         fi
-        which makerom
-        makerom -help 2>&1 | head -3
-    - name: Build
+
+    - name: Build CIA
       run: |
-        make -j$(nproc)
-        ELF=$(find . -name "*.elf" | head -1)
-        SMDH=$(find . -name "*.smdh" | head -1)
-        makerom -f cxi -o bilibili3ds.cxi -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1 && makerom -f cia -o bilibili3ds.cia -target t -i bilibili3ds.cxi:0:0 2>&1 || echo "CIA_FAILED"
-        ls -la *.3dsx *.cia *.smdh 2>/dev/null
+        make release -j$(nproc)
+        ls -la *.3dsx *.cia *.smdh 2>/dev/null || ls -la build/*.3dsx build/*.cia build/*.smdh 2>/dev/null || true
 
     - name: Upload
       uses: actions/upload-artifact@v4
@@ -47,4 +31,7 @@ jobs:
           *.3dsx
           *.cia
           *.smdh
+          build/*.3dsx
+          build/*.cia
+          build/*.smdh
         if-no-files-found: warn
