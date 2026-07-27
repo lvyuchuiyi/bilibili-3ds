@@ -36,7 +36,7 @@ jobs:
         make -j$(nproc)
         ELF=$(find . -name "*.elf" | head -1)
         SMDH=$(find . -name "*.smdh" | head -1)
-        makerom -f cia -o bilibili3ds.cia -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf 2>&1 || true
+        makerom -f cia -o bilibili3ds.cia -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf 2>&1 || makerom -f cia -o bilibili3ds.cia -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf -desc app:4 2>&1 || echo "CIA_FAILED"
         ls -la *.3dsx *.cia *.smdh 2>/dev/null
 
     - name: Upload

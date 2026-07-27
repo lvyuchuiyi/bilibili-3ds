@@ -1,92 +1,25 @@
 BasicInfo:
-  Title                   : "BiliBili 3DS"
-  ProductCode             : "BILI0001"
+  Title: "BiliBili 3DS"
+  ProductCode: "BILI0001"
 
 TitleInfo:
-  Category                : Application
-  UniqueId                : 0x55555
+  Category: Application
+  UniqueId: 0x55555
 
 Option:
-  UseOnSD                 : true
-  FreeProductCode         : true
-  EnableCrypt             : false
+  UseOnSD: true
+  FreeProductCode: true
+  EnableCrypt: false
 
 AccessControlInfo:
-  CoreVersion                   : 2
-  DescVersion                   : 2
-  ReleaseKernelMajor            : "02"
-  ReleaseKernelMinor            : "33"
-
-  FileSystemAccess:
-   - DirectSdmc
-   - DirectSdmcWrite
-
-  MemoryType                    : Application
-  SystemMode                    : 96MB
-  SystemModeExt                 : 124MB
-  IdealProcessor                : 0
-  AffinityMask                  : 1
-  Priority                      : 16
-  MaxCpu                        : 0
-  HandleTableSize               : 0x200
-  DisableDebug                  : false
-  EnableForceDebug              : false
-  CanWriteSharedPage            : true
-  CanUsePrivilegedPriority      : false
-  CanUseNonAlphabetAndNumber    : true
-  PermitMainFunctionArgument    : true
-  CanShareDeviceMemory          : true
-  RunnableOnSleep               : false
-  SpecialMemoryArrange          : true
-  CpuSpeed                      : 804MHz
-  EnableL2Cache                 : true
-  CanAccessCore2                : true
-
-  IORegisterMapping:
-   - 1ff00000-1ff7ffff
-
-  MemoryMapping:
-   - 1f000000-1f5fffff:r
-
-  SystemCallAccess:
-    ControlMemory: 1
-    CreateThread: 8
-    ExitThread: 9
-    SleepThread: 10
-    ExitProcess: 3
-    CreateMutex: 19
-    ReleaseMutex: 20
-    CreateSemaphore: 21
-    ReleaseSemaphore: 22
-    CreateEvent: 23
-    SignalEvent: 24
-    ClearEvent: 25
-    CreateTimer: 26
-    SetTimer: 27
-    ClearTimer: 29
-    CreateMemoryBlock: 30
-    MapMemoryBlock: 31
-    UnmapMemoryBlock: 32
-    CreateAddressArbiter: 33
-    ArbitrateAddress: 34
-    CloseHandle: 35
-    WaitSynchronization1: 36
-    WaitSynchronizationN: 37
-    DuplicateHandle: 39
-    GetSystemTick: 40
-    GetHandleInfo: 41
-    GetSystemInfo: 42
-    GetProcessInfo: 43
-    GetThreadInfo: 44
-    ConnectToPort: 45
-    SendSyncRequest: 50
-    GetProcessId: 53
-    GetThreadId: 55
-    GetResourceLimit: 56
-    GetResourceLimitCurrentValues: 58
-    GetThreadPriority: 11
-    SetThreadPriority: 12
-    Backdoor: 123
+  CoreVersion: 2
+  DescVersion: 2
+  ReleaseKernelMajor: "02"
+  ReleaseKernelMinor: "33"
+  MemoryType: Application
+  SystemMode: 96MB
+  SystemModeExt: 124MB
+  CpuSpeed: 804MHz
 
   ServiceAccessControl:
    - fs:USER
@@ -95,51 +28,8 @@ AccessControlInfo:
    - APT:U
    - soc:U
    - ssl:C
-   - ptm:u
-   - cfg:u
-   - dsp:DSP
-   - csnd:SND
-   - ir:u
-   - mic:u
-   - ac:u
-   - ndm:u
-   - nwm::UDS
-   - news:u
-   - http:C
-   - am:net
 
 SystemControlInfo:
-  SaveDataSize                : 0K
-  RemasterVersion             : 0
-  StackSize                   : 0x100000
-
-  Dependency:
-    ac: 0x0004013000002402
-    am: 0x0004013000001502
-    boss: 0x0004013000003402
-    camera: 0x0004013000001602
-    cfg: 0x0004013000001702
-    codec: 0x0004013000001802
-    csnd: 0x0004013000002702
-    dsp: 0x0004013000001a02
-    friends: 0x0004013000003202
-    fs: 0x0004013000004002
-    gpio: 0x0004013000001b02
-    gsp: 0x0004013000001c02
-    hid: 0x0004013000001d02
-    http: 0x0004013000002902
-    i2c: 0x0004013000001e02
-    ir: 0x0004013000003302
-    mcu: 0x0004013000001f02
-    mic: 0x0004013000002002
-    ndm: 0x0004013000002b02
-    news: 0x0004013000003502
-    nim: 0x0004013000002c02
-    nwm: 0x0004013000002d02
-    pdn: 0x0004013000002102
-    ps: 0x0004013000003102
-    ptm: 0x0004013000002202
-    ro: 0x0004013000003702
-    socket: 0x0004013000002e02
-    spi: 0x0004013000002302
-    ssl: 0x0004013000002f02
+  SaveDataSize: 128K
+  RemasterVersion: 0
+  StackSize: 0x100000
