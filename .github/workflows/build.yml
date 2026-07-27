@@ -16,7 +16,7 @@ jobs:
     
     - name: Install makerom if missing
       run: |
-        command -v makerom || dkp-pacman -S --noconfirm general-tools || true
+        dkp-pacman -S --noconfirm general-tools 3ds-dev 2>&1 || echo makerom install failed, will use fallback
     
     - name: Build .3dsx and .cia
       run: |
@@ -36,3 +36,4 @@ jobs:
           build/*.cia
           build/*.smdh
         if-no-files-found: warn
+
