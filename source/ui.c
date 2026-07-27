@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ui.c - citro3d-based UI for 3DS
  * Optimizations:
  *  - Pre-allocated text buffers, reused across frames
@@ -84,10 +84,10 @@ static void render_main_menu(void) {
     int by = 70;
 
     draw_rect(bx, by, btn_w, btn_h, CLR_PRIMARY);
-    draw_text(bx + 16, by + 14, 0.55f, CLR_WHITE, "[ 鎺ㄨ崘瑙嗛 ]");
+    draw_text(bx + 16, by + 14, 0.55f, CLR_WHITE, "OK");
 
     draw_rect(bx, by + 70, btn_w, btn_h, CLR_PRIMARY);
-    draw_text(bx + 16, by + 84, 0.55f, CLR_WHITE, "[ 鎼滅储瑙嗛 ]");
+    draw_text(bx + 16, by + 84, 0.55f, CLR_WHITE, "OK");
 }
 
 /* Render a video list on the top screen */
@@ -96,10 +96,10 @@ static void render_video_list(const char *title, bili_video_list_t *list,
     /* Header */
     draw_rect(0, 0, TOP_W, 32, CLR_PRIMARY);
     draw_text(12, 8, 0.55f, CLR_WHITE, "%s", title);
-    draw_text(TOP_W - 80, 8, 0.45f, CLR_WHITE, "B閿繑鍥?);
+    draw_text(TOP_W - 80, 8, 0.45f, CLR_WHITE, "B-Back");
 
     if (!list || list->count == 0) {
-        draw_text(60, 100, 0.55f, CLR_TEXT_LT, "鏆傛棤缁撴灉");
+        draw_text(60, 100, 0.55f, CLR_TEXT_LT, "OK");
         return;
     }
 
@@ -148,26 +148,26 @@ static void render_video_list(const char *title, bili_video_list_t *list,
 
     /* Scroll indicator */
     if (scroll_off > 0)
-        draw_text(TOP_W / 2 - 10, TOP_H - 14, 0.4f, CLR_TEXT_LT, "^ 涓婄炕");
+        draw_text(TOP_W / 2 - 10, TOP_H - 14, 0.4f, CLR_TEXT_LT, "OK");
     if (scroll_off + visible < list->count)
-        draw_text(TOP_W / 2 - 10, TOP_H - 14, 0.4f, CLR_TEXT_LT, "v 涓嬬炕");
+        draw_text(TOP_W / 2 - 10, TOP_H - 14, 0.4f, CLR_TEXT_LT, "OK");
 }
 
 static void render_search_input(const char *search_text) {
     /* Top screen: prompt */
     draw_rect(0, 0, TOP_W, 40, CLR_PRIMARY);
-    draw_text(16, 12, 0.55f, CLR_WHITE, "璇疯緭鍏ユ悳绱㈠叧閿瘝");
+    draw_text(16, 12, 0.55f, CLR_WHITE, "OK");
 
-    draw_text(MARGIN, 60, 0.5f, CLR_TEXT, "鍏抽敭璇? %s", search_text);
-    draw_text(MARGIN, 90, 0.4f, CLR_TEXT_LT, "鍦ㄤ笅鏂硅Е鎽稿睆杈撳叆鏂囧瓧");
-    draw_text(MARGIN, 110, 0.4f, CLR_TEXT_LT, "杈撳叆瀹屾垚鍚庣偣鍑?[鎼滅储]");
-    draw_text(MARGIN, 130, 0.4f, CLR_TEXT_LT, "B閿?杩斿洖涓婄骇");
+    draw_text(MARGIN, 60, 0.5f, CLR_TEXT, "OK", search_text);
+    draw_text(MARGIN, 90, 0.4f, CLR_TEXT_LT, "OK");
+    draw_text(MARGIN, 110, 0.4f, CLR_TEXT_LT, "OK");
+    draw_text(MARGIN, 130, 0.4f, CLR_TEXT_LT, "OK");
 }
 
 static void render_video_detail(bili_video_t *video) {
     draw_rect(0, 0, TOP_W, 40, CLR_PRIMARY);
-    draw_text(12, 12, 0.55f, CLR_WHITE, "瑙嗛璇︽儏");
-    draw_text(TOP_W - 80, 12, 0.45f, CLR_WHITE, "B閿繑鍥?);
+    draw_text(12, 12, 0.55f, CLR_WHITE, "OK");
+    draw_text(TOP_W - 80, 12, 0.45f, CLR_WHITE, "B-Back");
 
     int y = 50;
     draw_rect(MARGIN, y, TOP_W - MARGIN * 2, 90, CLR_CARD);
@@ -176,35 +176,35 @@ static void render_video_detail(bili_video_t *video) {
     draw_text(MARGIN + 8, y + 6, 0.55f, CLR_TEXT, "%s", video->title);
 
     /* Author */
-    draw_text(MARGIN + 8, y + 32, 0.45f, CLR_TEXT_LT, "UP涓? %s", video->author);
+    draw_text(MARGIN + 8, y + 32, 0.45f, CLR_TEXT_LT, "OK", video->author);
 
     /* Stats */
     int mins = video->duration / 60;
     int secs = video->duration % 60;
     draw_text(MARGIN + 8, y + 54, 0.40f, CLR_TEXT_LT,
-              "鏃堕暱: %d:%02d  鎾斁: %d",
+              "OK",
               mins, secs, video->play_count);
 
     /* Play button */
     int btn_w = TOP_W - MARGIN * 2;
     int btn_y = 155;
     draw_rect(MARGIN, btn_y, btn_w, 40, CLR_PRIMARY);
-    draw_text(TOP_W / 2 - 30, btn_y + 12, 0.55f, CLR_WHITE, "[ 寮€濮嬫挱鏀?]");
+    draw_text(TOP_W / 2 - 30, btn_y + 12, 0.55f, CLR_WHITE, "OK");
 }
 
 static void render_playing(player_info_t *pinfo) {
     draw_rect(0, 0, TOP_W, TOP_H, C2D_Color32(0x00, 0x00, 0x00, 0xFF));
 
     if (pinfo->state == PLAYER_LOADING) {
-        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "鍔犺浇涓?..");
+        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "OK");
     } else if (pinfo->state == PLAYER_PLAYING) {
-        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "鎾斁涓?..");
+        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "OK");
         draw_text(TOP_W / 2 - 60, TOP_H / 2 + 16, 0.40f, CLR_TEXT_LT,
-                  "甯?%d/%d", pinfo->current_frame, pinfo->total_frames);
+                  "OK", pinfo->current_frame, pinfo->total_frames);
     } else if (pinfo->state == PLAYER_ERROR) {
-        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_RED, "鎾斁鍑洪敊");
+        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_RED, "OK");
     } else if (pinfo->state == PLAYER_DONE) {
-        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "鎾斁瀹屾瘯");
+        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "OK");
     }
 }
 
@@ -256,22 +256,22 @@ static void render_keyboard(const char *search_text, int shift, int page) {
 
     /* Space */
     draw_rect(gap2 * 2 + key_w, ctrl_y, key_w * 2, 24, CLR_WHITE);
-    draw_text(gap2 * 2 + key_w + 10, ctrl_y + 4, 0.35f, CLR_TEXT, "绌烘牸");
+    draw_text(gap2 * 2 + key_w + 10, ctrl_y + 4, 0.35f, CLR_TEXT, "OK");
 
     /* Backspace */
     int bx3 = gap2 * 3 + key_w * 3;
     draw_rect(bx3, ctrl_y, key_w, 24, C2D_Color32(0xFF, 0x99, 0x66, 0xFF));
-    draw_text(bx3 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "閫€鏍?);
+    draw_text(bx3 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "DEL");
 
     /* Clear */
     int bx4 = gap2 * 4 + key_w * 4;
     draw_rect(bx4, ctrl_y, key_w, 24, C2D_Color32(0xFF, 0x66, 0x66, 0xFF));
-    draw_text(bx4 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "娓呯┖");
+    draw_text(bx4 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "OK");
 
     /* Search */
     int bx5 = gap2 * 5 + key_w * 5;
     draw_rect(bx5, ctrl_y, key_w, 24, C2D_Color32(0x00, 0xCC, 0x66, 0xFF));
-    draw_text(bx5 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "鎼滅储");
+    draw_text(bx5 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "OK");
 }
 
 static void render_bottom_default(app_screen_t screen) {
@@ -280,24 +280,24 @@ static void render_bottom_default(app_screen_t screen) {
 
     switch (screen) {
         case SCREEN_MAIN_MENU:
-            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "瑙︽懜涓婃柟鑿滃崟椤归€夋嫨");
-            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "鍗佸瓧閿?/ 瑙﹀睆 鎿嶄綔");
-            draw_text(16, 80, 0.40f, CLR_TEXT_LT, "B = 杩斿洖");
+            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "OK");
+            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "OK");
+            draw_text(16, 80, 0.40f, CLR_TEXT_LT, "OK");
             break;
         case SCREEN_POPULAR:
         case SCREEN_SEARCH_RESULTS:
-            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "鈫戔啌 婊氬姩鍒楄〃");
-            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "A = 鏌ョ湅璇︽儏");
-            draw_text(16, 80, 0.40f, CLR_TEXT_LT, "B = 杩斿洖");
-            draw_text(16, 110, 0.40f, CLR_TEXT_LT, "瑙﹀睆鐐瑰嚮閫夋嫨");
+            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "OK");
+            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "OK");
+            draw_text(16, 80, 0.40f, CLR_TEXT_LT, "OK");
+            draw_text(16, 110, 0.40f, CLR_TEXT_LT, "OK");
             break;
         case SCREEN_VIDEO_DETAIL:
-            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "A = 寮€濮嬫挱鏀?);
-            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "B = 杩斿洖鍒楄〃");
+            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "A-Play");
+            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "OK");
             break;
         case SCREEN_PLAYING:
-            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "X = 鎾斁/鏆傚仠");
-            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "B = 鍋滄鎾斁");
+            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "OK");
+            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "OK");
             break;
         default:
             break;
@@ -355,14 +355,14 @@ void ui_render(app_state_t *state) {
             render_main_menu();
             break;
         case SCREEN_POPULAR:
-            render_video_list("鎺ㄨ崘瑙嗛", &state->popular_list,
+            render_video_list("OK", &state->popular_list,
                               state->selected_index, state->scroll_offset);
             break;
         case SCREEN_SEARCH_INPUT:
             render_search_input(state->search_text);
             break;
         case SCREEN_SEARCH_RESULTS:
-            render_video_list("鎼滅储缁撴灉", &state->search_list,
+            render_video_list("OK", &state->search_list,
                               state->selected_index, state->scroll_offset);
             break;
         case SCREEN_VIDEO_DETAIL:

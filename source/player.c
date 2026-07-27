@@ -1,4 +1,4 @@
-﻿/*
+/*
  * player.c - MVD H.264 hardware video decoder for 3DS
  * Uses the new MVDSTD API: mvdstdInit, mvdstdGenerateDefaultConfig, 
  * mvdstdProcessVideoFrame, mvdstdRenderVideoFrame
@@ -179,7 +179,7 @@ player_state_t player_update(void) {
     u32 flag = (nal_type == 5 || nal_type == 7 || nal_type == 8) ? 1 : 0;
 
     MVDSTD_ProcessNALUnitOut out;
-    (void)mvdstdProcessVideoFrame(workbuf, nal_size, flag, &out);
+    Result r = mvdstdProcessVideoFrame(workbuf, nal_size, flag, &out);
     if (MVD_CHECKNALUPROC_SUCCESS(r)) {
         if (r == MVD_STATUS_FRAMEREADY) {
             /* Render the decoded frame */
