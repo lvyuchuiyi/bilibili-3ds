@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ui.c - citro3d-based UI for 3DS
  * Optimizations:
  *  - Pre-allocated text buffers, reused across frames
@@ -119,7 +119,7 @@ static void render_video_list(const char *title, bili_video_list_t *list,
 
         /* Index badge */
         draw_rect(MARGIN, item_y, 22, item_h, CLR_RED);
-        char idx[4];
+        char idx[12];
         snprintf(idx, sizeof(idx), "%d", i + 1);
 
         /* Title - truncated to fit */
@@ -646,4 +646,5 @@ int ui_handle_keys(app_state_t *state, u32 keys_down) {
     }
     return 0;
 }
+
 

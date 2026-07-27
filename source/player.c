@@ -32,28 +32,23 @@ int player_init(void) {
     p_info.width = 400;
     p_info.height = 240;
 
-    /* mvdInit not needed in new libctru */
-    if (R_FAILED(r)) return -1;
-
     workbuf = (u8*)linearAlloc(MVD_WORKBUF_SIZE);
-    output_buf = (u8*)linearAlloc(400 * 240 * 2); /* RGB565 framebuffer */
+    output_buf = (u8*)linearAlloc(400 * 240 * 2);
     if (!workbuf || !output_buf) {
         if (workbuf) linearFree(workbuf);
         if (output_buf) linearFree(output_buf);
-        /* mvdExit not needed */
         return -2;
     }
 
-    r = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264,
+    Result r = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264,
                    MVD_OUTPUT_RGB565, MVD_WORKBUF_SIZE, NULL);
     if (R_FAILED(r)) {
         linearFree(workbuf);
         linearFree(output_buf);
-        /* mvdExit not needed */
         return -3;
     }
 
-        u32 out0_addr = (u32)(uintptr_t)output_buf;
+    u32 out0_addr = (u32)(uintptr_t)output_buf;
     mvdstdGenerateDefaultConfig(&mvd_config, 400, 240, 400, 240,
                                 NULL, &out0_addr, NULL);
     mvd_config.physaddr_outdata0 = osConvertVirtToPhys(output_buf);
