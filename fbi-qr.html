@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>BiliBili 3DS QR</title>
+<style>
+body { font-family: Arial; text-align: center; padding: 20px; background: #f5f5f5; }
+h2 { color: #00a1d6; }
+canvas { border: 8px solid #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.info { color: #666; font-size: 14px; margin-top: 20px; }
+.steps { text-align: left; max-width: 400px; margin: 20px auto; background: #fff; padding: 16px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h2>BiliBili 3DS</h2>
+<p>FBI 扫码安装二维码</p>
+<canvas id="qr" width="256" height="256"></canvas>
+<div class="steps">
+  <b>安装步骤：</b><br>
+  1. 3DS 上打开 FBI<br>
+  2. Remote Install → Scan QR Code<br>
+  3. 扫码后下载安装 .cia<br>
+  <br>
+  <b>二维码内容：</b><br>
+  <span id="url" style="font-size:12px;color:#999;word-break:break-all"></span>
+</div>
+<script>
+// 手动生成二维码（使用 qrcode-generator 算法）
+(function(){
+var gUrl = "https://github.com/lvyuchuiyi/bilibili-3ds/releases/latest/download/bilibili3ds.cia";
+document.getElementById("url").textContent = gUrl;
+
+// 简化的 QR 码生成 - 使用内置 jsqrcode 
+// 加载外部库
+var s = document.createElement("script");
+s.src = "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+s.onload = function() {
+  new QRCode(document.getElementById("qr"), {
+    text: gUrl,
+    width: 256,
+    height: 256
+  });
+};
+s.onerror = function() {
+  // CDN 加载失败，显示文字提示
+  document.getElementById("qr").style.display = "none";
+  document.body.innerHTML += "<p style='color:red'>QR 码库加载失败，请联网后刷新页面</p>";
+};
+document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
