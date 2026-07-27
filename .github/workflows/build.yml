@@ -31,7 +31,7 @@ jobs:
         SMDH=$(find . -name "*.smdh" | head -1)
         echo "ELF: $ELF, SMDH: $SMDH"
         if [ -n "$ELF" ]; then
-          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH"
+          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf
           ls -la bilibili3ds.cia
         else
           echo "No .elf found, listing all files:"
@@ -48,6 +48,7 @@ jobs:
           bilibili3ds.cia
           bilibili3ds.smdh
         if-no-files-found: error
+
 
 
 
