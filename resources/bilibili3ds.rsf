@@ -5,3 +5,10 @@ BasicInfo:
 TitleInfo:
   Category: Application
   UniqueId: 0x55555
+
+Option:
+  FreeProductCode: true
+  EnableCrypt: false
+
+SystemControlInfo:
+  StackSize: 0x100000
