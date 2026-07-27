@@ -34,7 +34,7 @@ CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS := -g $(ARCH)
 LDFLAGS  = -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lcitro2d -lcitro3d -lmbedtls -lmbedcrypto -lmbedx509 -lctru -lm -lz
+LIBS := -lcitro2d -lcitro3d -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm -lz
 
 LIBDIRS := $(CTRULIB) $(PORTLIBS)
 
@@ -145,4 +145,5 @@ check: $(OUTPUT).3dsx
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
+
 
