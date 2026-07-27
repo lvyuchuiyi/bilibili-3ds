@@ -74,10 +74,10 @@ static void start_playback(void) {
 int main(void) {
     /* Initialize subsystems */
     if (ui_init() != 0) return 1;
-    if (net_init() != 0) { ui_exit(); return 2; }
+    int net_ok = (net_init() == 0);
 
     /* Player init is optional - browsing works without it */
-    int player_ok = (player_init() == 0);
+    int player_ok = (player_init() == 0); /* non-fatal if fails */
 
     /* Initialize app state */
     memset(&state, 0, sizeof(state));
@@ -152,7 +152,7 @@ int main(void) {
         prev_screen = state.current_screen;
 
         /* --- Update player --- */
-        if (state.current_screen == SCREEN_PLAYING && player_ok) {
+        if (state.current_screen == SCREEN_PLAYING && player_ok && player_ok) {
             player_update();
         }
 
