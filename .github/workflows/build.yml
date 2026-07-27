@@ -11,11 +11,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install makerom
+      run: echo done
+    - name: Check citro2d API
       run: |
-        curl -sL -o /tmp/makerom.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.4/makerom-v0.18.4-ubuntu_x86_64.zip
-        unzip -o /tmp/makerom.zip -d /tmp/m
-        cp /tmp/m/makerom /usr/local/bin/
-        chmod +x /usr/local/bin/makerom
+        echo "=== Looking for C2D_Font ==="
+        grep -rn "C2D_Font" /opt/devkitpro/libctru/include/citro2d.h 2>/dev/null | head -20
+        echo "=== Looking for C2D_FontType ==="
+        grep -rn "FontType\|FontLoadSystem\|C2D_FontType" /opt/devkitpro/libctru/include/ 2>/dev/null | head -20
+        echo "=== Dumping citro2d.h font section ==="
+        grep -n "Font\|font" /opt/devkitpro/libctru/include/citro2d.h 2>/dev/null | head -30
     - name: Build CIA
       run: |
         make release -j$(nproc) 2>&1

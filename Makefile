@@ -18,6 +18,7 @@ include $(DEVKITARM)/3ds_rules
 TARGET     := bilibili3ds
 BUILD      := build
 SOURCES    := source
+
 DATA       := data
 INCLUDES   := source
 ROMFS      := romfs
