@@ -10,19 +10,16 @@ jobs:
       image: devkitpro/devkitarm:latest
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install tools
+    - name: Install makerom
       run: |
-        dkp-pacman -S --noconfirm general-tools 2>&1 || true
-        if ! command -v makerom >/dev/null 2>&1; then
-          which makerom 2>/dev/null || find / -name makerom 2>/dev/null
-        fi
-
+        curl -sL -o /tmp/makerom.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.4/makerom-v0.18.4-ubuntu_x86_64.zip
+        unzip -o /tmp/makerom.zip -d /tmp/m
+        cp /tmp/m/makerom /usr/local/bin/
+        chmod +x /usr/local/bin/makerom
     - name: Build CIA
       run: |
-        make release -j$(nproc)
+        make release -j$(nproc) 2>&1
         ls -la *.3dsx *.cia *.smdh 2>/dev/null || ls -la build/*.3dsx build/*.cia build/*.smdh 2>/dev/null || true
-
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
