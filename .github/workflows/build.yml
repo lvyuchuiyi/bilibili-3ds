@@ -14,9 +14,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Install makerom if missing
+      run: |
+        command -v makerom || dkp-pacman -S --noconfirm general-tools || true
+    
     - name: Build .3dsx and .cia
       run: |
         make release -j$(nproc)
+    
+    - name: List output
+      run: ls -la *.3dsx *.cia *.smdh 2>/dev/null || ls -la *.3dsx *.smdh 2>/dev/null
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

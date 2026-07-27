@@ -123,12 +123,14 @@ $(OUTPUT).elf: $(OFILES)
 #---------------------------------------------------------------------------------
 .PHONY: cia
 
-cia: $(OUTPUT).cia
-
-$(OUTPUT).cia: $(OUTPUT).elf $(OUTPUT).smdh
-	@echo building CIA ...
-	@makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -smdh $(OUTPUT).smdh
-	@echo "  $(notdir $(OUTPUT)).cia ready"
+cia: $(OUTPUT).3dsx
+	@if command -v makerom >/dev/null 2>&1; then \
+		echo building CIA ...; \
+		makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -smdh $(OUTPUT).smdh; \
+		echo "  $(notdir $(OUTPUT)).cia ready"; \
+	else \
+		echo "  makerom not found, skipping CIA (3dsx is available)"; \
+	fi
 
 check: $(OUTPUT).3dsx
 	@3dslink $(OUTPUT).3dsx
@@ -145,5 +147,6 @@ check: $(OUTPUT).3dsx
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
+
 
 
