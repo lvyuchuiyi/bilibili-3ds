@@ -10,3 +10,78 @@ Option:
   UseOnSD                 : true
   FreeProductCode         : true
   EnableCrypt             : false
+
+AccessControlInfo:
+  CoreVersion                   : 2
+  DescVersion                   : 2
+  ReleaseKernelMajor            : "02"
+  ReleaseKernelMinor            : "33"
+
+  MemoryType                    : Application
+  SystemMode                    : 64MB
+  IdealProcessor                : 0
+  AffinityMask                  : 1
+  Priority                      : 16
+  HandleTableSize               : 0x200
+
+  SystemCallAccess:
+    ControlMemory: 1
+    CreateThread: 8
+    ExitThread: 9
+    SleepThread: 10
+    ExitProcess: 3
+    CreateMutex: 19
+    ReleaseMutex: 20
+    CreateSemaphore: 21
+    ReleaseSemaphore: 22
+    CreateEvent: 23
+    SignalEvent: 24
+    ClearEvent: 25
+    CreateTimer: 26
+    SetTimer: 27
+    ClearTimer: 29
+    CreateMemoryBlock: 30
+    MapMemoryBlock: 31
+    UnmapMemoryBlock: 32
+    CreateAddressArbiter: 33
+    ArbitrateAddress: 34
+    CloseHandle: 35
+    WaitSynchronization1: 36
+    WaitSynchronizationN: 37
+    DuplicateHandle: 39
+    GetSystemTick: 40
+    GetHandleInfo: 41
+    GetSystemInfo: 42
+    GetProcessInfo: 43
+    GetThreadInfo: 44
+    ConnectToPort: 45
+    SendSyncRequest: 50
+    GetProcessId: 53
+    GetThreadId: 55
+    GetResourceLimit: 56
+    GetResourceLimitCurrentValues: 58
+    GetThreadPriority: 11
+    SetThreadPriority: 12
+
+  ServiceAccessControl:
+   - fs:USER
+   - srv:pm
+   - gsp::Gpu
+   - hid:USER
+   - APT:U
+   - soc:U
+   - ssl:C
+   - ptm:u
+
+SystemControlInfo:
+  SaveDataSize                : 0K
+  RemasterVersion             : 0
+  StackSize                   : 0x40000
+
+  Dependency:
+    fs: 0x0004013000004002
+    gsp: 0x0004013000001c02
+    hid: 0x0004013000001d02
+    soc: 0x0004013000002e02
+    ssl: 0x0004013000002f02
+    ptm: 0x0004013000002202
