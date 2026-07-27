@@ -5,28 +5,3 @@ BasicInfo:
 TitleInfo:
   Category: Application
   UniqueId: 0x55555
-
-Option:
-  UseOnSD: false
-  FreeProductCode: true
-  EnableCrypt: false
-
-AccessControlInfo:
-  CoreVersion: 2
-  DescVersion: 2
-  ReleaseKernelMajor: "02"
-  ReleaseKernelMinor: "33"
-  MemoryType: Application
-  SystemMode: 96MB
-
-  ServiceAccessControl:
-   - fs:USER
-   - gsp::Gpu
-   - hid:USER
-   - APT:U
-   - soc:U
-   - ssl:C
-
-SystemControlInfo:
-  RemasterVersion: 0
-  StackSize: 0x100000
