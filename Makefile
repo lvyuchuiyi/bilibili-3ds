@@ -128,7 +128,7 @@ $(OUTPUT).elf: $(OFILES)
 cia: $(OUTPUT).3dsx
 	@if command -v makerom >/dev/null 2>&1; then \
 		echo building CIA ...; \
-		/usr/local/bin/makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -icon $(OUTPUT).smdh -banner $(OUTPUT).smdh -desc app:4 -rsf $(TOPDIR)/resources/bilibili3ds.rsf; \
+		/usr/local/bin/makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -desc app:4 -rsf $(TOPDIR)/resources/bilibili3ds.rsf; \
 		echo "  $(notdir $(OUTPUT)).cia ready"; \
 	else \
 		echo "  makerom not found, skipping CIA (3dsx is available)"; \
