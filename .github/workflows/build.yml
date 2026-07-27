@@ -21,9 +21,8 @@ jobs:
     - name: Build .3dsx and .cia
       run: |
         make release -j$(nproc)
-    
-    - name: List output
-      run: ls -la *.3dsx *.cia *.smdh 2>/dev/null || ls -la *.3dsx *.smdh 2>/dev/null
+        echo "=== Output files ==="
+        find . -name "*.3dsx" -o -name "*.cia" -o -name "*.smdh" 2>/dev/null
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -33,4 +32,7 @@ jobs:
           *.3dsx
           *.cia
           *.smdh
+          build/*.3dsx
+          build/*.cia
+          build/*.smdh
         if-no-files-found: warn
