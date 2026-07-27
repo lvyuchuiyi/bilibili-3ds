@@ -2,6 +2,6 @@ BasicInfo:
   Title: "BiliBili 3DS"
 
 TitleInfo:
-  SystemVersion: 0x0000000000000000
-  TitleVersion: 0x0001
-  ProductCode: "BILI0001"
+  AppTitle:
+    TitleVersion: 1
+    ProductCode: "BILI0001"
