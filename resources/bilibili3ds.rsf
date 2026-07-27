@@ -7,7 +7,7 @@ TitleInfo:
   UniqueId: 0x55555
 
 Option:
-  UseOnSD: true
+  UseOnSD: false
   FreeProductCode: true
   EnableCrypt: false
 
@@ -18,8 +18,6 @@ AccessControlInfo:
   ReleaseKernelMinor: "33"
   MemoryType: Application
   SystemMode: 96MB
-  SystemModeExt: 124MB
-  CpuSpeed: 804MHz
 
   ServiceAccessControl:
    - fs:USER
@@ -30,6 +28,5 @@ AccessControlInfo:
    - ssl:C
 
 SystemControlInfo:
-  SaveDataSize: 128K
   RemasterVersion: 0
   StackSize: 0x100000
