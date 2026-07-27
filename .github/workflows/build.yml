@@ -14,26 +14,41 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install makerom if missing
+    - name: Install makerom
       run: |
-        dkp-pacman -S --noconfirm general-tools 3ds-dev 2>&1 || echo makerom install failed, will use fallback
+        echo "Downloading makerom..."
+        curl -sL -o /tmp/makerom.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.4/makerom-v0.18.4-ubuntu_x86_64.zip
+        unzip -o /tmp/makerom.zip -d /tmp/makerom
+        cp /tmp/makerom/makerom /usr/local/bin/makerom
+        chmod +x /usr/local/bin/makerom
+        makerom -help 2>&1 | head -2 || true
     
     - name: Build .3dsx and .cia
       run: |
-        make release -j$(nproc)
-        echo "=== Output files ==="
-        find . -name "*.3dsx" -o -name "*.cia" -o -name "*.smdh" 2>/dev/null
+        make -j$(nproc)
+        echo "=== Build complete, creating CIA ==="
+        ELF=$(find . -name "*.elf" | head -1)
+        SMDH=$(find . -name "*.smdh" | head -1)
+        echo "ELF: $ELF, SMDH: $SMDH"
+        if [ -n "$ELF" ]; then
+          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH"
+          ls -la bilibili3ds.cia
+        else
+          echo "No .elf found, listing all files:"
+          find . -type f -name "*.3dsx" -o -name "*.elf" -o -name "*.smdh"
+          exit 1
+        fi
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: bilibili3ds-build
         path: |
-          *.3dsx
-          *.cia
-          *.smdh
-          build/*.3dsx
-          build/*.cia
-          build/*.smdh
-        if-no-files-found: warn
+          bilibili3ds.3dsx
+          bilibili3ds.cia
+          bilibili3ds.smdh
+        if-no-files-found: error
+
+
+
 

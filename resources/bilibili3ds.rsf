@@ -1,0 +1,10 @@
+BasicInfo:
+  Title                   : "BiliBili 3DS"
+  Description             : "BiliBili video client for 3DS"
+  Author                  : "lvyuchuiyi"
+  
+TitleInfo:
+  AppTitle:
+    SystemVersion          : 0x0000000000000000
+    TitleVersion           : 0x0001
+    ProductCode            : "BILI0001"
