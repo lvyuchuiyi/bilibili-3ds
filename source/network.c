@@ -124,7 +124,7 @@ int http_get(const char *url, http_response_t *resp) {
 
         mbedtls_ssl_set_bio(&ssl_ctx, &net_ctx,
                             mbedtls_net_send, NULL,
-                            mbedtls_net_recv, NULL);
+                            mbedtls_net_recv);
 
         ret = mbedtls_ssl_handshake(&ssl_ctx);
         if (ret != 0) break;
