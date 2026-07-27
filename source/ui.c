@@ -15,6 +15,7 @@
 #include <citro2d.h>
 #include "ui.h"
 #include "player.h"
+#include <stdarg.h>
 
 /* Pre-allocated render resources */
 static C3D_RenderTarget *top_target = NULL;
@@ -62,7 +63,7 @@ static void draw_text(int x, int y, float scale, u32 color, const char *fmt, ...
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
 
-    if (text_dirty || !text_scratch.sequence) {
+    if (1) {
         C2D_TextBufClear(textbuf);
         C2D_TextFontParse(&text_scratch, font, textbuf, buf);
         C2D_TextOptimize(&text_scratch);
@@ -95,7 +96,7 @@ static void render_video_list(const char *title, bili_video_list_t *list,
     /* Header */
     draw_rect(0, 0, TOP_W, 32, CLR_PRIMARY);
     draw_text(12, 8, 0.55f, CLR_WHITE, "%s", title);
-    draw_text(TOP_W - 80, 8, 0.45f, CLR_WHITE, "B键返回");
+    draw_text(TOP_W - 80, 8, 0.45f, CLR_WHITE, "B键返�?);
 
     if (!list || list->count == 0) {
         draw_text(60, 100, 0.55f, CLR_TEXT_LT, "暂无结果");
@@ -157,16 +158,16 @@ static void render_search_input(const char *search_text) {
     draw_rect(0, 0, TOP_W, 40, CLR_PRIMARY);
     draw_text(16, 12, 0.55f, CLR_WHITE, "请输入搜索关键词");
 
-    draw_text(MARGIN, 60, 0.5f, CLR_TEXT, "关键词: %s", search_text);
+    draw_text(MARGIN, 60, 0.5f, CLR_TEXT, "关键�? %s", search_text);
     draw_text(MARGIN, 90, 0.4f, CLR_TEXT_LT, "在下方触摸屏输入文字");
-    draw_text(MARGIN, 110, 0.4f, CLR_TEXT_LT, "输入完成后点击 [搜索]");
-    draw_text(MARGIN, 130, 0.4f, CLR_TEXT_LT, "B键 返回上级");
+    draw_text(MARGIN, 110, 0.4f, CLR_TEXT_LT, "输入完成后点�?[搜索]");
+    draw_text(MARGIN, 130, 0.4f, CLR_TEXT_LT, "B�?返回上级");
 }
 
 static void render_video_detail(bili_video_t *video) {
     draw_rect(0, 0, TOP_W, 40, CLR_PRIMARY);
     draw_text(12, 12, 0.55f, CLR_WHITE, "视频详情");
-    draw_text(TOP_W - 80, 12, 0.45f, CLR_WHITE, "B键返回");
+    draw_text(TOP_W - 80, 12, 0.45f, CLR_WHITE, "B键返�?);
 
     int y = 50;
     draw_rect(MARGIN, y, TOP_W - MARGIN * 2, 90, CLR_CARD);
@@ -175,7 +176,7 @@ static void render_video_detail(bili_video_t *video) {
     draw_text(MARGIN + 8, y + 6, 0.55f, CLR_TEXT, "%s", video->title);
 
     /* Author */
-    draw_text(MARGIN + 8, y + 32, 0.45f, CLR_TEXT_LT, "UP主: %s", video->author);
+    draw_text(MARGIN + 8, y + 32, 0.45f, CLR_TEXT_LT, "UP�? %s", video->author);
 
     /* Stats */
     int mins = video->duration / 60;
@@ -188,18 +189,18 @@ static void render_video_detail(bili_video_t *video) {
     int btn_w = TOP_W - MARGIN * 2;
     int btn_y = 155;
     draw_rect(MARGIN, btn_y, btn_w, 40, CLR_PRIMARY);
-    draw_text(TOP_W / 2 - 30, btn_y + 12, 0.55f, CLR_WHITE, "[ 开始播放 ]");
+    draw_text(TOP_W / 2 - 30, btn_y + 12, 0.55f, CLR_WHITE, "[ 开始播�?]");
 }
 
 static void render_playing(player_info_t *pinfo) {
     draw_rect(0, 0, TOP_W, TOP_H, C2D_Color32(0x00, 0x00, 0x00, 0xFF));
 
     if (pinfo->state == PLAYER_LOADING) {
-        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "加载中...");
+        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "加载�?..");
     } else if (pinfo->state == PLAYER_PLAYING) {
-        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "播放中...");
+        draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_WHITE, "播放�?..");
         draw_text(TOP_W / 2 - 60, TOP_H / 2 + 16, 0.40f, CLR_TEXT_LT,
-                  "帧 %d/%d", pinfo->current_frame, pinfo->total_frames);
+                  "�?%d/%d", pinfo->current_frame, pinfo->total_frames);
     } else if (pinfo->state == PLAYER_ERROR) {
         draw_text(TOP_W / 2 - 60, TOP_H / 2 - 10, 0.55f, CLR_RED, "播放出错");
     } else if (pinfo->state == PLAYER_DONE) {
@@ -260,7 +261,7 @@ static void render_keyboard(const char *search_text, int shift, int page) {
     /* Backspace */
     int bx3 = gap2 * 3 + key_w * 3;
     draw_rect(bx3, ctrl_y, key_w, 24, C2D_Color32(0xFF, 0x99, 0x66, 0xFF));
-    draw_text(bx3 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "退格");
+    draw_text(bx3 + 4, ctrl_y + 4, 0.35f, CLR_WHITE, "退�?);
 
     /* Clear */
     int bx4 = gap2 * 4 + key_w * 4;
@@ -280,7 +281,7 @@ static void render_bottom_default(app_screen_t screen) {
     switch (screen) {
         case SCREEN_MAIN_MENU:
             draw_text(16, 20, 0.45f, CLR_TEXT_LT, "触摸上方菜单项选择");
-            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "十字键 / 触屏 操作");
+            draw_text(16, 50, 0.40f, CLR_TEXT_LT, "十字�?/ 触屏 操作");
             draw_text(16, 80, 0.40f, CLR_TEXT_LT, "B = 返回");
             break;
         case SCREEN_POPULAR:
@@ -291,7 +292,7 @@ static void render_bottom_default(app_screen_t screen) {
             draw_text(16, 110, 0.40f, CLR_TEXT_LT, "触屏点击选择");
             break;
         case SCREEN_VIDEO_DETAIL:
-            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "A = 开始播放");
+            draw_text(16, 20, 0.45f, CLR_TEXT_LT, "A = 开始播�?);
             draw_text(16, 50, 0.40f, CLR_TEXT_LT, "B = 返回列表");
             break;
         case SCREEN_PLAYING:
@@ -311,7 +312,7 @@ int ui_init(void) {
     C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
     C2D_Prepare();
 
-    font = C2D_FontLoadSystem(C2D_FontType_System);
+    font = C2D_FontLoadSystem(0);
     if (!font) return -1;
 
     textbuf = C2D_TextBufNew(8192);
