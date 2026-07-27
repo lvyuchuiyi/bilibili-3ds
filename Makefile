@@ -3,6 +3,7 @@ APP_TITLE       := BiliBili 3DS
 APP_DESCRIPTION := BiliBili video client for 3DS
 APP_AUTHOR      := Codex
 .SUFFIXES:
+#---------------------------------------------------------------------------------
 
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
@@ -11,6 +12,9 @@ endif
 TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
+#---------------------------------------------------------------------------------
+# TARGET, BUILD, SOURCES
+#---------------------------------------------------------------------------------
 TARGET     := bilibili3ds
 BUILD      := build
 SOURCES    := source
@@ -21,8 +25,7 @@ ROMFS      := romfs
 ARCH   := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS := -g -Wall -O2 -mword-relocations \
-          -fomit-frame-pointer -ffunction-sections \
-          $(ARCH)
+          -fomit-frame-pointer -ffunction-sections $(ARCH)
 
 CFLAGS += $(INCLUDE) -DARM11 -D_3DS
 
@@ -35,13 +38,19 @@ LIBS := -lcitro3d -lctru -lmbedtls -lmbedcrypto -lmbedx509 -lm -lz
 
 LIBDIRS := $(CTRULIB) $(PORTLIBS)
 
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>devkitPro")
-endif
+#---------------------------------------------------------------------------------
+# The recursive make split
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
 
-export ROMFS
-INCLUDES += $(ROMFS)
-LIBDIRS := $(CTRULIB) $(PORTLIBS)
+export OUTPUT := $(CURDIR)/$(TARGET)
+export TOPDIR := $(CURDIR)
+
+export VPATH := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+                $(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR := $(CURDIR)/$(BUILD)
 
 CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -95,17 +104,22 @@ install: all
 $(SOURCES):
 	@echo "  $(TARGET).3dsx ready"
 
+#---------------------------------------------------------------------------------
 else
-CFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+#---------------------------------------------------------------------------------
+
+CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 export OUTPUT := $(CURDIR)/$(TARGET)
 
-check: $(OUTPUT).3dsx
-	@3dslink $(OUTPUT).3dsx
-
+#---------------------------------------------------------------------------------
+# Main targets - actual compilation
+#---------------------------------------------------------------------------------
 $(OUTPUT).3dsx: $(OUTPUT).elf $(OUTPUT).smdh
 
+$(OUTPUT).elf: $(OFILES)
+
 #---------------------------------------------------------------------------------
-# CIA build using makerom (included with devkitPro 3ds-dev package)
+# CIA build
 #---------------------------------------------------------------------------------
 .PHONY: cia
 
@@ -116,9 +130,18 @@ $(OUTPUT).cia: $(OUTPUT).elf $(OUTPUT).smdh
 	@makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -smdh $(OUTPUT).smdh
 	@echo "  $(notdir $(OUTPUT)).cia ready"
 
+check: $(OUTPUT).3dsx
+	@3dslink $(OUTPUT).3dsx
+
+#---------------------------------------------------------------------------------
+# Binary data rules
+#---------------------------------------------------------------------------------
 %.bin.o: %.bin
 	@echo $(notdir $<)
 	@$(bin2o)
 
 -include $(DEPSDIR)/*.d
+
+#---------------------------------------------------------------------------------
 endif
+#---------------------------------------------------------------------------------
