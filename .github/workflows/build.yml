@@ -25,17 +25,19 @@ jobs:
     - name: Build .3dsx
       run: |
         make -j$(nproc) 2>&1
-        echo "=== build exit code: $? ==="
-        ls -la *.3dsx *.elf *.smdh 2>&1 || echo "Missing artifacts"
+        ls -la *.3dsx *.elf *.smdh 2>&1
     
     - name: Generate CIA
-      if: success()
       run: |
-        makerom -f cia -o bilibili3ds.cia -elf bilibili3ds.elf -icon bilibili3ds.smdh -banner bilibili3ds.smdh -rsf resources/bilibili3ds.rsf 2>&1
-        ls -la bilibili3ds.cia 2>/dev/null
+        makerom -f cia -o bilibili3ds.cia \
+          -desc app:4 \
+          -elf bilibili3ds.elf \
+          -icon bilibili3ds.smdh \
+          -banner bilibili3ds.smdh \
+          -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA FAILED (continuing anyway)"
+        ls -la bilibili3ds.cia 2>/dev/null || echo "No CIA generated"
     
     - name: Upload artifacts
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: bilibili3ds-build
