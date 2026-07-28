@@ -1,4 +1,4 @@
-﻿name: Build BiliBili 3DS
+name: Build BiliBili 3DS
 
 on:
   push:
@@ -33,10 +33,9 @@ jobs:
     - name: Generate CIA with makerom
       run: |
         ELF=$(find . -name "*.elf" | head -1)
-        SMDH=$(find . -name "*.smdh" | head -1)
         RSF=resources/bilibili3ds.rsf
-        echo "ELF=$ELF SMDH=$SMDH RSF=$RSF"
-        makerom -f cia -o bilibili3ds.cia -target t -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA failed"
+        echo "ELF=$ELF RSF=$RSF"
+        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA failed"
         ls -la bilibili3ds.cia 2>/dev/null || echo "No CIA generated"
     
     - name: Upload artifacts
