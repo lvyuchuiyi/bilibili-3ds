@@ -2,7 +2,7 @@ name: Build BiliBili 3DS
 
 on:
   push:
-    branches: ["*"]
+
   workflow_dispatch:
 
 jobs:
