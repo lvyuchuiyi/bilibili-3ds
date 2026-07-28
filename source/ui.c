@@ -3,6 +3,7 @@
 
 static C3D_RenderTarget *top = NULL;
 static C2D_Font font = NULL;
+static C2D_TextBuf textbuf = NULL;
 
 int ui_init(void) {
     gfxInitDefault();
@@ -13,12 +14,16 @@ int ui_init(void) {
     font = C2D_FontLoadSystem(1);
     if (!font) return -1;
 
+    textbuf = C2D_TextBufNew(4096);
+    if (!textbuf) return -1;
+
     top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     if (!top) return -1;
     return 0;
 }
 
 void ui_exit(void) {
+    if (textbuf) C2D_TextBufDelete(textbuf);
     if (font) C2D_FontFree(font);
     C2D_Fini();
     C3D_Fini();
