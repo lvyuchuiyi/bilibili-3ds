@@ -18,7 +18,6 @@ include $(DEVKITARM)/3ds_rules
 TARGET     := bilibili3ds
 BUILD      := build
 SOURCES    := source
-
 DATA       := data
 INCLUDES   := source
 ROMFS      := romfs
@@ -33,7 +32,7 @@ CFLAGS += $(INCLUDE) -D__3DS__
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS := -g $(ARCH)
-LDFLAGS  = -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map) 
+LDFLAGS  = -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS := -lcitro2d -lcitro3d -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm -lz
 
@@ -52,8 +51,6 @@ export VPATH := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
                 $(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
 export DEPSDIR := $(CURDIR)/$(BUILD)
-
-export _3DSXDEPS := $(if $(NO_SMDH),,$(OUTPUT).smdh)
 
 CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -117,7 +114,7 @@ CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 #---------------------------------------------------------------------------------
 # Main targets - actual compilation
 #---------------------------------------------------------------------------------
-$(OUTPUT).3dsx: $(OUTPUT).elf
+$(OUTPUT).3dsx: $(OUTPUT).elf $(OUTPUT).smdh
 
 $(OUTPUT).elf: $(OFILES)
 
@@ -129,7 +126,7 @@ $(OUTPUT).elf: $(OFILES)
 cia: $(OUTPUT).3dsx
 	@if command -v makerom >/dev/null 2>&1; then \
 		echo building CIA ...; \
-		/usr/local/bin/makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -desc app:4 -rsf $(TOPDIR)/resources/bilibili3ds.rsf; \
+		makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -smdh $(OUTPUT).smdh; \
 		echo "  $(notdir $(OUTPUT)).cia ready"; \
 	else \
 		echo "  makerom not found, skipping CIA (3dsx is available)"; \
