@@ -2,6 +2,7 @@
 #include <citro2d.h>
 
 static C3D_RenderTarget *top = NULL;
+static C3D_RenderTarget *bot = NULL;
 static C2D_Font font = NULL;
 static C2D_TextBuf textbuf = NULL;
 
@@ -19,6 +20,10 @@ int ui_init(void) {
 
     top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     if (!top) return -1;
+
+    bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+    if (!bot) return -1;
+
     return 0;
 }
 
