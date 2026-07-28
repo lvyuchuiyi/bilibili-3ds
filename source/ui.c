@@ -64,7 +64,6 @@ static void draw_text(int x, int y, float scale, u32 color, const char *fmt, ...
     va_end(args);
 
     if (1) {
-        C2D_TextBufClear(textbuf);
         C2D_TextFontParse(&text_scratch, font, textbuf, buf);
         C2D_TextOptimize(&text_scratch);
     }
@@ -342,6 +341,8 @@ void ui_render(app_state_t *state) {
 
     player_info_t pinfo;
     player_get_info(&pinfo);
+    /* Pre-render: clear text buffer before GPU frame */
+    C2D_TextBufClear(textbuf);
 
     /* Render top screen */
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -646,5 +647,6 @@ int ui_handle_keys(app_state_t *state, u32 keys_down) {
     }
     return 0;
 }
+
 
 

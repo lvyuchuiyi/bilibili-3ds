@@ -74,10 +74,10 @@ static void start_playback(void) {
 int main(void) {
     /* Initialize subsystems */
     if (ui_init() != 0) return 1;
-    int net_ok = 0; /* net_init disabled for bisect */
+    int net_ok = (net_init() == 0); /* net_init for bisect */
 
     /* Player init is optional - browsing works without it */
-    int player_ok = 0; /* player_init disabled for bisect */ /* non-fatal if fails */
+    int player_ok = (player_init() == 0); /* player_init for bisect */ /* non-fatal if fails */
 
     /* Initialize app state */
     memset(&state, 0, sizeof(state));
