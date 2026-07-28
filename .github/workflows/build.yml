@@ -1,38 +1,13 @@
-name: Build BiliBili 3DS
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+name: Dump citro2d font API
+on: [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: devkitpro/devkitarm:latest
+    container: { image: devkitpro/devkitarm:latest }
     steps:
-    - uses: actions/checkout@v4
-    - name: Install makerom
-      run: echo done
-    - name: Check citro2d API
+    - name: Dump font header
       run: |
-        echo "=== Looking for C2D_Font ==="
-        grep -rn "C2D_Font" /opt/devkitpro/libctru/include/citro2d.h 2>/dev/null | head -20
-        echo "=== Looking for C2D_FontType ==="
-        grep -rn "FontType\|FontLoadSystem\|C2D_FontType" /opt/devkitpro/libctru/include/ 2>/dev/null | head -20
-        echo "=== Dumping citro2d.h font section ==="
-        grep -n "Font\|font" /opt/devkitpro/libctru/include/citro2d.h 2>/dev/null | head -30
-    - name: Build CIA
-      run: |
-        make release -j$(nproc) 2>&1
-        ls -la *.3dsx *.cia *.smdh 2>/dev/null || ls -la build/*.3dsx build/*.cia build/*.smdh 2>/dev/null || true
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: bilibili3ds-build
-        path: |
-          *.3dsx
-          *.cia
-          *.smdh
-          build/*.3dsx
-          build/*.cia
-          build/*.smdh
-        if-no-files-found: warn
+        echo "=== font.h ==="
+        cat /opt/devkitpro/libctru/include/c2d/font.h
+        echo "=== looking for C2D_Text ==="
+        grep -n "C2D_Text\|C2D_DrawText\|C2D_TextOpt" /opt/devkitpro/libctru/include/c2d/*.h 2>/dev/null
