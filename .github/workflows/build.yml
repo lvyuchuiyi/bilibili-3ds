@@ -21,8 +21,6 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
-        echo "=== makerom help ==="
-        makerom -exthelp 2>&1 | head -100 || true
     
     - name: Build .3dsx
       run: |
@@ -30,12 +28,13 @@ jobs:
         echo "build done"
         ls -la *.3dsx *.elf *.smdh
     
-    - name: Generate CIA with makerom
+    - name: Generate CIA
       run: |
-        ELF=$(find . -name "*.elf" | head -1)
-        RSF=resources/bilibili3ds.rsf
-        echo "ELF=$ELF RSF=$RSF"
-        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA failed"
+        makerom -f cia -o bilibili3ds.cia \
+          -elf bilibili3ds.elf \
+          -icon bilibili3ds.smdh \
+          -banner bilibili3ds.smdh \
+          -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA failed"
         ls -la bilibili3ds.cia 2>/dev/null || echo "No CIA generated"
     
     - name: Upload artifacts
@@ -47,5 +46,3 @@ jobs:
           *.cia
           *.smdh
         if-no-files-found: warn
-
-
