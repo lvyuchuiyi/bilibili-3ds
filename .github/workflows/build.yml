@@ -14,28 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install makerom
-      run: |
-        echo "Downloading makerom..."
-        curl -sL -o /tmp/makerom.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18.4/makerom-v0.18.4-ubuntu_x86_64.zip
-        unzip -o /tmp/makerom.zip -d /tmp/makerom
-        cp /tmp/makerom/makerom /usr/local/bin/makerom
-        chmod +x /usr/local/bin/makerom
-    
     - name: Build .3dsx
-      run: |
-        make -j$(nproc) 2>&1
-        ls -la *.3dsx *.elf *.smdh 2>&1
+      run: make -j$(nproc) 2>&1
     
-    - name: Generate CIA
-      run: |
-        makerom -f cia -o bilibili3ds.cia \
-          -desc app:4 \
-          -elf bilibili3ds.elf \
-          -icon bilibili3ds.smdh \
-          -banner bilibili3ds.smdh \
-          -rsf resources/bilibili3ds.rsf 2>&1 || echo "CIA FAILED (continuing anyway)"
-        ls -la bilibili3ds.cia 2>/dev/null || echo "No CIA generated"
+    - name: Show artifacts
+      run: ls -la *.3dsx *.elf *.smdh || true
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -43,6 +26,4 @@ jobs:
         name: bilibili3ds-build
         path: |
           *.3dsx
-          *.cia
           *.smdh
-        if-no-files-found: warn
