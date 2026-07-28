@@ -5,8 +5,5 @@ TitleInfo:
   Category: Application
   UniqueId: 0x55555
 Option:
-  UseOnSD: false
+  UseOnSD: true
   FreeProductCode: true
-  EnableCrypt: false
-SystemControlInfo:
-  StackSize: 0x100000
