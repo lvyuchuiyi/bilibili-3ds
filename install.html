@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>BiliBili 3DS Install</title>
+<style>
+body{font-family:Arial;text-align:center;padding:20px;background:#f5f5f5}
+h2{color:#00a1d6}
+.url{background:#fff;padding:16px;border-radius:8px;word-break:break-all;font-size:18px;margin:20px}
+.steps{text-align:left;max-width:500px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;line-height:1.8}
+</style>
+</head>
+<body>
+<h2>BiliBili 3DS</h2>
+<p>FBI Remote Install</p>
+<div class="url" id="url">https://github.com/lvyuchuiyi/bilibili-3ds/releases/latest/download/bilibili3ds.cia</div>
+<div class="steps">
+<b>?????</b><br>
+1. 3DS ?? FBI<br>
+2. Remote Install &#8594; Download URL<br>
+3. ??????<br>
+4. ?????? &#8594; Install CIA<br>
+<br>
+<b>Release ???</b><br>
+<a href="https://github.com/lvyuchuiyi/bilibili-3ds/releases">github.com/lvyuchuiyi/bilibili-3ds/releases</a>
+</div>
+<script>
+document.getElementById("url").onclick = function(){
+  navigator.clipboard.writeText(this.textContent);
+  this.style.background="#e8ffe8";
+  this.textContent += " (???)";
+};
+</script>
+</body>
+</html>
