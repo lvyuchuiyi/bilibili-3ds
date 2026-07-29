@@ -16,7 +16,10 @@ jobs:
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
     - name: Build .3dsx and .cia
-      run: make -j$(nproc) cia 2>&1
+      run: |
+        make -j$(nproc) cia 2>&1
+        echo "=== Files ==="
+        find . -name "*.3dsx" -o -name "*.cia" -o -name "*.elf" -o -name "*.smdh" 2>/dev/null
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -35,8 +38,12 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
+        CIA=$(find . -name "*.cia" | head -1)
+        ELF=$(find . -name "*.3dsx" | head -1)
+        echo "Found CIA: $CIA"
+        echo "Found 3DSX: $ELF"
         TAG="v$(date +%Y%m%d-%H%M%S)"
         gh release create "$TAG" \
           --title "BiliBili 3DS $TAG" \
           --notes "Auto-build from commit ${{ github.sha }}" \
-          bilibili3ds.cia bilibili3ds.3dsx
+          "$CIA" "$ELF"
