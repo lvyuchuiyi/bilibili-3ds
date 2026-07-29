@@ -76,7 +76,7 @@ return 0;
 
 void ui_exit(void){C2D_Fini();C3D_Fini();gfxExit();}
 
-void ui_render(void){
+void ui_render(app_state_t *state){(void)state;{
 C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 C2D_TargetClear(top,C2D_Color32(0xF5,0xF5,0xF5,0xFF));C2D_SceneBegin(top);
 draw_rect(0,0,400,40,C2D_Color32(0x00,0x96,0xED,0xFF));
@@ -91,3 +91,7 @@ draw_str(16,50,C2D_Color32(0x88,0x88,0x88,0xFF),"A - Select");
 draw_str(16,80,C2D_Color32(0x88,0x88,0x88,0xFF),"START - Exit");
 C3D_FrameEnd(0);
 }
+#include <3ds.h>
+#include "ui.h"
+int ui_handle_touch(app_state_t *s, touchPosition *t) { (void)s; (void)t; return 0; }
+int ui_handle_keys(app_state_t *s, u32 k) { (void)s; (void)k; return 0; }
