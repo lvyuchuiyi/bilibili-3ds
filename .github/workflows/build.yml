@@ -15,19 +15,18 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
-        makerom -exthelp 2>&1 | head -5 || true
     - name: Build .3dsx
       run: |
         make -j$(nproc) 2>&1
-        ls -la bilibili3ds.elf bilibili3ds.3dsx 2>/dev/null; ls -la bilibili3ds.smdh 2>/dev/null || true
+        ls -la *.3dsx *.elf 2>/dev/null || true
     - name: Build .cia
       run: |
         ELF=$(find . -name "*.elf" | head -1)
         RSF=resources/bilibili3ds.rsf
         echo "ELF=$ELF RSF=$RSF"
-        cat "$RSF"
-        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -rsf "$RSF" 2>&1 || echo "CIA FAILED"
-        ls -la bilibili3ds.cia 2>/dev/null || echo "No CIA"
+        test -f "$RSF" && cat "$RSF" || echo "NO RSF"
+        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf "$RSF" 2>&1 || true
+        test -f bilibili3ds.cia && ls -la bilibili3ds.cia || echo "CIA FAILED"
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -35,22 +34,17 @@ jobs:
         path: |
           *.3dsx
           *.cia
-          *.smdh
         if-no-files-found: warn
     - name: Install gh CLI
-      run: |
-        apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
+      run: apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
     - name: Create Release
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fix/full-app'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        CIA=$(find . -name "*.cia" | head -1)
-        XDX=$(find . -name "*.3dsx" | head -1)
-        echo "CIA=$CIA 3DSX=$XDX"
-        if [ -z "$CIA" ]; then echo "No CIA, skipping release"; exit 1; fi
-        TAG="v$(date +%Y%m%d-%H%M%S)"
-        gh release create "$TAG" \
-          --title "BiliBili 3DS $TAG" \
-          --notes "Auto-build from commit ${{ github.sha }}" \
-          "$CIA" "$XDX"
+        CIA_FILE=$(find . -name "*.cia" | head -1)
+        THREE_FILE=$(find . -name "*.3dsx" | head -1)
+        echo "CIA=$CIA_FILE 3DSX=$THREE_FILE"
+        if [ -z "$CIA_FILE" ]; then echo "No CIA"; exit 1; fi
+        TAG="v$(date +%Y%m%d-%H%M)"
+        gh release create "$TAG" --title "BiliBili 3DS $TAG" "$CIA_FILE" "$THREE_FILE"
