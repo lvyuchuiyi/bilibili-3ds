@@ -136,7 +136,9 @@ int http_get(const char *url, http_response_t *resp) {
             "User-Agent: Mozilla/5.0 (Linux; U; Android 4.4; 3DS) "
             "AppleWebKit/537.36 BiliApp/1.0\r\n"
             "Referer: https://www.bilibili.com/\r\n"
-            "Connection: close\r\n"
+            "Connection: close\r\n" +
+            "Accept: application/json, text/plain, */*\r\n" +
+            "Origin: https://www.bilibili.com\r\n" +
             "\r\n",
             path, host);
 
