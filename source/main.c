@@ -74,17 +74,10 @@ static void start_playback(void) {
 int main(void) {
     /* Initialize subsystems */
     if (ui_init() != 0) return 1;
-
-    /* Warm-up frame */
-    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    C2D_TargetClear(ui_get_top(), C2D_Color32(0x00,0x96,0xED,0xFF));
-    C2D_SceneBegin(ui_get_top());
-    C3D_FrameEnd(0);
-
-    int net_ok = (net_init() == 0); /* net_init for bisect */
+    int net_ok = (net_init() == 0); 
 
     /* Player init is optional - browsing works without it */
-    int player_ok = (player_init() == 0); /* player_init for bisect */ /* non-fatal if fails */
+    int player_ok = (player_init() == 0);  /* non-fatal if fails */
 
     /* Initialize app state */
     memset(&state, 0, sizeof(state));
@@ -173,4 +166,3 @@ int main(void) {
     ui_exit();
     return 0;
 }
-
