@@ -18,21 +18,22 @@ jobs:
         chmod +x /usr/local/bin/makerom
     - name: Build
       run: make -j$(nproc) 2>&1
-    - name: Show SMDH
-      run: ls -la *.smdh *.elf *.3dsx 2>/dev/null || true
-    - name: Build CIA with icon
+    - name: Build CIA
       run: |
         SMDH=$(find . -name "*.smdh" | head -1)
         ELF=$(find . -name "*.elf" | head -1)
-        echo "SMDH=$SMDH ELF=$ELF"
-        if [ -n "$SMDH" ]; then
-          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
-        else
-          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
-        fi
+        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: bilibili3ds-build
         path: "*.3dsx\n*.cia\n*.smdh"
         if-no-files-found: warn
+    - name: Install gh CLI
+      run: apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
+    - name: Create Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        git config --global --add safe.directory /__w/bilibili-3ds/bilibili-3ds
+        gh release create "v$(date +%Y%m%d-%H%M)" --title "BiliBili 3DS $(date +%Y-%m-%d)" bilibili3ds.cia bilibili3ds.3dsx 2>/dev/null || true
