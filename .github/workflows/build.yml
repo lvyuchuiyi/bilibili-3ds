@@ -16,6 +16,8 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
+    - name: Install gh CLI
+      run: apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
     - name: Build
       run: make -j$(nproc) 2>&1
     - name: Build CIA
