@@ -2,12 +2,12 @@
 #include <citro2d.h> 
 int main(void) { 
     gfxInitDefault(); 
-    cfguInit(); 
+    romfsInit(); 
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); 
     C2D_Init(4096); 
     C2D_Prepare(); 
     gfxSet3D(false); 
-    C2D_Font font = C2D_FontLoadSystem(1); 
+    C2D_Font font = C2D_FontLoad("romfs:/ui-menu-font.bcfnt"); 
     if (!font) return 1; 
     C2D_TextBuf buf = C2D_TextBufNew(65536); 
     if (!buf) { C2D_FontFree(font); return 1; } 
@@ -26,6 +26,6 @@ int main(void) {
     } 
     C2D_TextBufDelete(buf); C2D_FontFree(font); 
     C2D_Fini(); C3D_Fini(); gfxExit(); 
-    cfguExit(); 
+    romfsExit(); 
     return 0; 
 } 
