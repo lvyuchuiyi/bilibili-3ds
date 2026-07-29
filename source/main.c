@@ -2,15 +2,12 @@
 #include <citro2d.h> 
 int main(void) { 
     gfxInitDefault(); 
-    romfsInit(); 
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE); 
     C2D_Init(4096); 
     C2D_Prepare(); 
     gfxSet3D(false); 
-    C2D_Font font = C2D_FontLoad("romfs:/ui-menu-font.bcfnt"); 
-    if (!font) return 1; 
-    C2D_TextBuf buf = C2D_TextBufNew(65536); 
-    if (!buf) { C2D_FontFree(font); return 1; } 
+    Result r = romfsInit(); 
+    if (R_FAILED(r)) return 1; 
     C3D_RenderTarget *top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT); 
     C3D_RenderTarget *bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT); 
     if (!top || !bot) return 1; 
@@ -24,8 +21,7 @@ int main(void) {
         C2D_SceneBegin(bot); 
         C3D_FrameEnd(0); 
     } 
-    C2D_TextBufDelete(buf); C2D_FontFree(font); 
-    C2D_Fini(); C3D_Fini(); gfxExit(); 
     romfsExit(); 
+    C2D_Fini(); C3D_Fini(); gfxExit(); 
     return 0; 
 } 
