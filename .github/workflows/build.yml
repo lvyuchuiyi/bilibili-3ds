@@ -15,12 +15,15 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
-        makerom -exthelp 2>&1 | head -20
-    - name: Build and make CIA
+    - name: Build .3dsx
+      run: make -j$(nproc) 2>&1
+    - name: Build .cia
       run: |
-        make -j$(nproc) cia 2>&1
-        echo "=== Files ==="
-        find . -name "*.cia" -o -name "*.3dsx" -o -name "*.elf" 2>/dev/null
+        ELF=$(find . -name "*.elf" | head -1)
+        ls -la "$ELF"
+        cat resources/bilibili3ds.rsf
+        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+        ls -la *.cia 2>/dev/null || echo "No CIA"
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:

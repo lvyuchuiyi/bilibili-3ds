@@ -1,1 +1,10 @@
-BasicInfo:echo   Title: "BiliBili 3DS"echo   ProductCode: "BILI0001"echo TitleInfo:echo   Category: Applicationecho   UniqueId: 0x55555echo Option:echo   UseOnSD: falseecho   FreeProductCode: trueecho   EnableCrypt: false
+BasicInfo:
+  Title: "BiliBili 3DS"
+  ProductCode: "BILI0001"
+TitleInfo:
+  Category: Application
+  UniqueId: 0x55555
+Option:
+  UseOnSD: false
+  FreeProductCode: true
+  EnableCrypt: false
