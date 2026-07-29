@@ -2,6 +2,7 @@
 #include <citro2d.h>
 #include "ui.h"
 
+/* [font data - same as step6] */
 static const unsigned char font[66][8]={
 {0x3C,0x66,0x6E,0x7E,0x76,0x66,0x3C,0x00},{0x18,0x38,0x18,0x18,0x18,0x18,0x7E,0x00},
 {0x3C,0x66,0x06,0x0C,0x18,0x30,0x7E,0x00},{0x3C,0x66,0x06,0x1C,0x06,0x66,0x3C,0x00},
@@ -42,14 +43,14 @@ static int font_idx(char ch){
 if(ch>='0'&&ch<='9')return ch-'0';
 if(ch>='A'&&ch<='Z')return ch-'A'+10;
 if(ch>='a'&&ch<='z')return ch-'a'+36;
-if(ch==' ')return 62; if(ch==':')return 63; if(ch=='-')return 64; if(ch=='/')return 65;
+if(ch==' ')return 62;if(ch==':')return 63;if(ch=='-')return 64;if(ch=='/')return 65;
 return 62;
 }
 
 void draw_char(int x,int y,char ch,u32 col){
 int idx=font_idx(ch);
-for(int r=0;r<8;r++){unsigned char bits=font[idx][r];
-for(int c=0;c<8;c++){if(bits&(0x80>>c))C2D_DrawRectSolid(x+c,y+r,0.5f,1,1,col);}}
+for(int r=0;r<8;r++){unsigned char b=font[idx][r];
+for(int c=0;c<8;c++){if(b&(0x80>>c))C2D_DrawRectSolid(x+c,y+r,0.5f,1,1,col);}}
 }
 
 void draw_str(int x,int y,u32 col,const char*s){
@@ -59,6 +60,19 @@ while(*s){draw_char(x,y,*s,col);x+=9;s++;}
 void draw_rect(int x,int y,int w,int h,u32 col){
 C2D_DrawRectSolid(x,y,0.5f,w,h,col);
 }
+
+#define CLR_BG C2D_Color32(0xF5,0xF5,0xF5,0xFF)
+#define CLR_PRI C2D_Color32(0x00,0x96,0xED,0xFF)
+#define CLR_W C2D_Color32(0xFF,0xFF,0xFF,0xFF)
+#define CLR_T C2D_Color32(0x22,0x22,0x22,0xFF)
+#define CLR_TL C2D_Color32(0x88,0x88,0x88,0xFF)
+#define CLR_RED C2D_Color32(0xFB,0x72,0x99,0xFF)
+#define CLR_SEL C2D_Color32(0xE3,0xF2,0xFD,0xFF)
+#define TOP_W 400
+#define TOP_H 240
+#define BOT_W 320
+#define BOT_H 240
+#define MARGIN 8
 
 static C3D_RenderTarget *t=NULL,*b=NULL;
 
@@ -73,22 +87,62 @@ return 0;
 
 void ui_exit(void){C2D_Fini();C3D_Fini();gfxExit();}
 
+static void render_main_menu(void){
+draw_rect(0,0,TOP_W,40,CLR_PRI);
+draw_str(16,10,CLR_W,"BiliBili for 3DS");
+draw_rect(100,70,200,48,CLR_PRI);
+draw_str(116,84,CLR_W,"Popular Videos");
+draw_rect(100,140,200,48,CLR_PRI);
+draw_str(140,154,CLR_W,"Search");
+}
+
+static void render_bottom_default(app_screen_t s){
+draw_rect(0,0,BOT_W,BOT_H,C2D_Color32(0xE8,0xE8,0xE8,0xFF));
+draw_rect(0,0,BOT_W,24,CLR_W);
+switch(s){
+case SCREEN_MAIN_MENU:
+draw_str(16,50,CLR_TL,"A - Select");
+draw_str(16,80,CLR_TL,"START - Exit");
+break;
+default:
+draw_str(16,50,CLR_TL,"B - Go Back");
+break;
+}
+}
+
 void ui_render(app_state_t *state){
-(void)state;
+if(!state)return;
 C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-C2D_TargetClear(t,C2D_Color32(0xF5,0xF5,0xF5,0xFF));C2D_SceneBegin(t);
-draw_rect(0,0,400,40,C2D_Color32(0x00,0x96,0xED,0xFF));
-draw_str(16,10,C2D_Color32(0xFF,0xFF,0xFF,0xFF),"BiliBili for 3DS");
-draw_rect(100,70,200,48,C2D_Color32(0x00,0x96,0xED,0xFF));
-draw_str(116,84,C2D_Color32(0xFF,0xFF,0xFF,0xFF),"Popular Videos");
-draw_rect(100,140,200,48,C2D_Color32(0x00,0x96,0xED,0xFF));
-draw_str(140,154,C2D_Color32(0xFF,0xFF,0xFF,0xFF),"Search");
+C2D_TargetClear(t,CLR_BG);C2D_SceneBegin(t);
+switch(state->current_screen){
+case SCREEN_MAIN_MENU:render_main_menu();break;
+default:render_main_menu();break;
+}
 C2D_TargetClear(b,C2D_Color32(0xE8,0xE8,0xE8,0xFF));C2D_SceneBegin(b);
-draw_rect(0,0,320,24,C2D_Color32(0xFF,0xFF,0xFF,0xFF));
-draw_str(16,50,C2D_Color32(0x88,0x88,0x88,0xFF),"A - Select");
-draw_str(16,80,C2D_Color32(0x88,0x88,0x88,0xFF),"START - Exit");
+render_bottom_default(state->current_screen);
 C3D_FrameEnd(0);
 }
 
-int ui_handle_touch(app_state_t *s,touchPosition *t){(void)s;(void)t;return 0;}
-int ui_handle_keys(app_state_t *s,u32 k){(void)s;(void)k;return 0;}
+int ui_handle_touch(app_state_t *s,touchPosition *p){(void)s;(void)p;return 0;}
+
+int ui_handle_keys(app_state_t *s,u32 k){
+if(!s)return 0;
+switch(s->current_screen){
+case SCREEN_MAIN_MENU:
+if(k&KEY_A){s->current_screen=SCREEN_POPULAR;s->selected_index=0;s->scroll_offset=0;return 1;}
+if(k&KEY_X){s->current_screen=SCREEN_SEARCH_INPUT;memset(s->search_text,0,128);s->kb_shift=0;return 1;}
+break;
+case SCREEN_POPULAR:
+case SCREEN_SEARCH_RESULTS:
+if(k&KEY_B){s->current_screen=SCREEN_MAIN_MENU;return 1;}
+break;
+case SCREEN_SEARCH_INPUT:
+if(k&KEY_B){s->current_screen=SCREEN_MAIN_MENU;return 1;}
+break;
+case SCREEN_VIDEO_DETAIL:
+if(k&KEY_B){s->current_screen=SCREEN_POPULAR;return 1;}
+break;
+default:break;
+}
+return 0;
+}
