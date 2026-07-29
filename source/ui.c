@@ -1,10 +1,10 @@
 #include <3ds.h>
 #include <citro2d.h>
-#include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 #include "ui.h"
 
-/* [font data - same as step6] */
+/* ===== 8x8 bitmap font: 0-9=0..9, A-Z=10..35, a-z=36..61, sp=62, :=63, -=64, /=65 ===== */
 static const unsigned char font[66][8]={
 {0x3C,0x66,0x6E,0x7E,0x76,0x66,0x3C,0x00},{0x18,0x38,0x18,0x18,0x18,0x18,0x7E,0x00},
 {0x3C,0x66,0x06,0x0C,0x18,0x30,0x7E,0x00},{0x3C,0x66,0x06,0x1C,0x06,0x66,0x3C,0x00},
@@ -70,11 +70,16 @@ C2D_DrawRectSolid(x,y,0.5f,w,h,col);
 #define CLR_TL C2D_Color32(0x88,0x88,0x88,0xFF)
 #define CLR_RED C2D_Color32(0xFB,0x72,0x99,0xFF)
 #define CLR_SEL C2D_Color32(0xE3,0xF2,0xFD,0xFF)
+#define CLR_CARD C2D_Color32(0xFF,0xFF,0xFF,0xFF)
 #define TOP_W 400
 #define TOP_H 240
 #define BOT_W 320
 #define BOT_H 240
 #define MARGIN 8
+#define LIST_ITEM_H 26
+#define KB_KEY_W 24
+#define KB_KEY_H 20
+#define KB_GAP 2
 
 static C3D_RenderTarget *t=NULL,*b=NULL;
 
@@ -89,65 +94,185 @@ return 0;
 
 void ui_exit(void){C2D_Fini();C3D_Fini();gfxExit();}
 
+/* ===== Top screen renderers ===== */
 static void render_main_menu(void){
 draw_rect(0,0,TOP_W,40,CLR_PRI);
 draw_str(16,10,CLR_W,"BiliBili for 3DS");
 draw_rect(100,70,200,48,CLR_PRI);
-draw_str(116,84,CLR_W,"Popular Videos");
+draw_str(130,84,CLR_W,"Popular Videos");
 draw_rect(100,140,200,48,CLR_PRI);
-draw_str(140,154,CLR_W,"Search");
+draw_str(155,154,CLR_W,"Search");
 }
 
-static void render_bottom_default(app_screen_t s){
-draw_rect(0,0,BOT_W,BOT_H,C2D_Color32(0xE8,0xE8,0xE8,0xFF));
+static void render_video_list(const char *title, bili_video_list_t *list, int sel, int scroll){
+draw_rect(0,0,TOP_W,32,CLR_PRI);
+draw_str(12,8,CLR_W,title);
+draw_str(TOP_W-80,8,CLR_W,"B-Back");
+if(!list||list->count==0){draw_str(60,100,CLR_TL,"No videos found");return;}
+int y=36,vis=(TOP_H-36-MARGIN)/LIST_ITEM_H;
+if(vis>MAX_VISIBLE_ITEMS)vis=MAX_VISIBLE_ITEMS;
+for(int i=scroll;i<list->count&&i<scroll+vis;i++){
+bili_video_t *v=&list->videos[i];
+int iy=y+(i-scroll)*LIST_ITEM_H;
+if(i==sel)draw_rect(MARGIN,iy,TOP_W-MARGIN*2,LIST_ITEM_H,CLR_SEL);
+draw_rect(MARGIN,iy,22,LIST_ITEM_H,CLR_RED);
+char idx[4];snprintf(idx,4,"%d",i+1);draw_str(MARGIN+4,iy+9,CLR_W,idx);
+char dt[60];int tl=strlen(v->title);
+if(tl>52){strncpy(dt,v->title,52);dt[52]=0;}else strcpy(dt,v->title);
+draw_str(MARGIN+28,iy+2,CLR_T,dt);
+draw_str(MARGIN+28,iy+14,CLR_TL,v->author);
+if(i<list->count-1)draw_rect(MARGIN,iy+LIST_ITEM_H-1,TOP_W-MARGIN*2,1,C2D_Color32(0xE0,0xE0,0xE0,0xFF));
+}
+if(scroll>0)draw_str(TOP_W/2-10,TOP_H-14,CLR_TL,"^");
+if(scroll+vis<list->count)draw_str(TOP_W/2-10,TOP_H-14,CLR_TL,"v");
+}
+
+static void render_search_input(const char *text){
+draw_rect(0,0,TOP_W,40,CLR_PRI);
+draw_str(16,12,CLR_W,"Search");
+draw_str(MARGIN,60,CLR_T,"Type on bottom screen");
+draw_str(MARGIN,90,CLR_TL,"Type on bottom screen");
+draw_str(MARGIN,110,CLR_TL,"B to go back");
+}
+
+static void render_video_detail(bili_video_t *v){
+draw_rect(0,0,TOP_W,40,CLR_PRI);
+draw_str(12,12,CLR_W,"Detail");
+draw_str(TOP_W-80,12,CLR_W,"B-Back");
+int y=50;
+draw_rect(MARGIN,y,TOP_W-MARGIN*2,90,CLR_CARD);
+draw_str(MARGIN+8,y+6,CLR_T,v->title);
+char auth[64];snprintf(auth,64,"By: ");strncat(auth,v->author,60);
+draw_str(MARGIN+8,y+32,CLR_TL,auth);
+int m=v->duration/60,s=v->duration%60;
+char stats[64];snprintf(stats,64,"%d:%02d - %d plays",m,s,v->play_count);
+draw_str(MARGIN+8,y+54,CLR_TL,stats);
+draw_rect(MARGIN,155,TOP_W-MARGIN*2,40,CLR_PRI);
+draw_str(TOP_W/2-20,167,CLR_W,"Play");
+}
+
+static void render_playing(player_info_t *p){
+(void)p;
+draw_rect(0,0,TOP_W,TOP_H,C2D_Color32(0x00,0x00,0x00,0xFF));
+draw_str(TOP_W/2-60,TOP_H/2-10,CLR_W,"Playing...");
+draw_str(TOP_W/2-80,TOP_H/2+16,CLR_TL,"B-Stop X-Pause");
+}
+
+/* ===== Bottom screen renderers ===== */
+static void render_keyboard(const char *text,int shift){
+draw_rect(0,0,BOT_W,BOT_H,C2D_Color32(0xCC,0xCC,0xCC,0xFF));
 draw_rect(0,0,BOT_W,24,CLR_W);
-switch(s){
+draw_str(4,4,CLR_T,text);
+int kx=4,ky=28,kw=KB_KEY_W,kh=KB_KEY_H,gap=KB_GAP;
+const char *rows[4];rows[0]=shift?"QWERTYUIOP":"qwertyuiop";
+rows[1]=shift?"ASDFGHJKL":"asdfghjkl";
+rows[2]=shift?"ZXCVBNM":"zxcvbnm";rows[3]=".,?!@-_:;()";
+for(int r=0;r<4;r++){
+int sx=kx+(BOT_W-(int)strlen(rows[r])*(kw+gap))/2;
+for(int c=0;rows[r][c];c++){
+int bx=sx+c*(kw+gap),by=ky+r*(kh+gap);
+draw_rect(bx,by,kw,kh,CLR_W);
+char ch[2]={rows[r][c],0};draw_str(bx+8,by+4,CLR_T,ch);
+}}
+int cy=ky+4*(kh+gap)+4,g2=4,key_w=(BOT_W-5*g2)/6;
+draw_rect(g2,cy,key_w,24,CLR_PRI);draw_str(g2+4,cy+4,CLR_W,shift?"ABC":"abc");
+draw_rect(g2*2+key_w,cy,key_w*2+2,24,CLR_CARD);draw_str(g2*2+key_w+10,cy+4,CLR_T,"Space");
+draw_rect(g2*3+key_w*3,cy,key_w,24,C2D_Color32(0xFF,0x99,0x66,0xFF));
+draw_str(g2*3+key_w*3+2,cy+4,CLR_W,"DEL");
+draw_rect(g2*4+key_w*4,cy,key_w,24,C2D_Color32(0xFF,0x66,0x66,0xFF));
+draw_str(g2*4+key_w*4+6,cy+4,CLR_W,"Clr");
+draw_rect(g2*5+key_w*5,cy,key_w,24,C2D_Color32(0x00,0xCC,0x66,0xFF));
+draw_str(g2*5+key_w*5+8,cy+4,CLR_W,"Go");
+}
+
+static void render_bottom_default(app_screen_t screen){
+draw_rect(0,0,BOT_W,BOT_H,C2D_Color32(0xE8,0xE8,0xE8,0xFF));
+draw_rect(0,0,BOT_W,24,CLR_CARD);
+switch(screen){
 case SCREEN_MAIN_MENU:
-draw_str(16,50,CLR_TL,"A - Select");
+draw_str(16,50,CLR_TL,"A - Select   X - Search");
 draw_str(16,80,CLR_TL,"START - Exit");
 break;
-default:
-draw_str(16,50,CLR_TL,"B - Go Back");
+case SCREEN_POPULAR:
+case SCREEN_SEARCH_RESULTS:
+draw_str(16,50,CLR_TL,"A - Open video");
+draw_str(16,80,CLR_TL,"B - Go back");
+draw_str(16,110,CLR_TL,"UP/DOWN - Navigate");
 break;
+case SCREEN_VIDEO_DETAIL:
+draw_str(16,50,CLR_TL,"A - Play video");
+draw_str(16,80,CLR_TL,"B - Go back");
+break;
+case SCREEN_PLAYING:
+draw_str(16,50,CLR_TL,"X - Pause");
+draw_str(16,80,CLR_TL,"B - Stop");
+break;
+default:break;
 }
 }
 
 void ui_render(app_state_t *state){
 if(!state)return;
+player_info_t pinfo;player_get_info(&pinfo);
 C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 C2D_TargetClear(t,CLR_BG);C2D_SceneBegin(t);
 switch(state->current_screen){
 case SCREEN_MAIN_MENU:render_main_menu();break;
-case SCREEN_POPULAR:
-case SCREEN_SEARCH_RESULTS:{
-bili_video_list_t *lst=(state->current_screen==SCREEN_POPULAR)?&state->popular_list:&state->search_list;
-draw_rect(0,0,TOP_W,32,CLR_PRI);
-draw_str(12,8,CLR_W,state->current_screen==SCREEN_POPULAR?"Popular Videos":"Search Results");
-draw_str(TOP_W-80,8,CLR_W,"B-Back");
-if(!lst||lst->count==0){draw_str(60,100,CLR_TL,"No videos found");break;}
-int y=36;
-int vis=(TOP_H-36-MARGIN)/26;if(vis>MAX_VISIBLE_ITEMS)vis=MAX_VISIBLE_ITEMS;
-for(int i=state->scroll_offset;i<lst->count&&i<state->scroll_offset+vis;i++){
-bili_video_t *v=&lst->videos[i];
-int iy=y+(i-state->scroll_offset)*26;
-if(i==state->selected_index)draw_rect(MARGIN,iy,TOP_W-MARGIN*2,26,CLR_SEL);
-draw_rect(MARGIN,iy,22,26,CLR_RED);
-char idx[4];snprintf(idx,4,"%d",i+1);draw_str(MARGIN+2,iy+9,CLR_W,idx);
-char dt[60];int tl=strlen(v->title);
-if(tl>52){strncpy(dt,v->title,52);dt[52]=0;}else strcpy(dt,v->title);
-draw_str(MARGIN+28,iy+2,CLR_T,dt);
-draw_str(MARGIN+28,iy+14,CLR_TL,v->author);
-if(i<lst->count-1)draw_rect(MARGIN,iy+25,TOP_W-MARGIN*2,1,C2D_Color32(0xE0,0xE0,0xE0,0xFF));
-}}
-break;
+case SCREEN_POPULAR:render_video_list("Popular",&state->popular_list,state->selected_index,state->scroll_offset);break;
+case SCREEN_SEARCH_RESULTS:render_video_list("Results",&state->search_list,state->selected_index,state->scroll_offset);break;
+case SCREEN_SEARCH_INPUT:render_search_input(state->search_text);break;
+case SCREEN_VIDEO_DETAIL:render_video_detail(&state->current_video);break;
+case SCREEN_PLAYING:render_playing(&pinfo);break;
+default:render_main_menu();break;
 }
 C2D_TargetClear(b,C2D_Color32(0xE8,0xE8,0xE8,0xFF));C2D_SceneBegin(b);
-render_bottom_default(state->current_screen);
+if(state->current_screen==SCREEN_SEARCH_INPUT)render_keyboard(state->search_text,state->kb_shift);
+else render_bottom_default(state->current_screen);
 C3D_FrameEnd(0);
 }
 
-int ui_handle_touch(app_state_t *s,touchPosition *p){(void)s;(void)p;return 0;}
+/* ===== Input handling ===== */
+static int handle_kb_touch(app_state_t *s,int px,int py){
+int kx=4,ky=28,kw=KB_KEY_W,kh=KB_KEY_H,gap=KB_GAP;
+const char *rows[4];rows[0]=s->kb_shift?"QWERTYUIOP":"qwertyuiop";
+rows[1]=s->kb_shift?"ASDFGHJKL":"asdfghjkl";
+rows[2]=s->kb_shift?"ZXCVBNM":"zxcvbnm";rows[3]=".,?!@-_:;()";
+for(int r=0;r<4;r++){
+int sx=kx+(BOT_W-(int)strlen(rows[r])*(kw+gap))/2;
+for(int c=0;rows[r][c];c++){
+int bx=sx+c*(kw+gap),by=ky+r*(kh+gap);
+if(px>=bx&&px<bx+kw&&py>=by&&py<by+kh){
+int len=strlen(s->search_text);
+if(len<(int)sizeof(s->search_text)-2){s->search_text[len]=rows[r][c];s->search_text[len+1]=0;s->search_text_pos=len+1;}
+return 1;
+}}}
+int cy=ky+4*(kh+gap)+4,g2=4,key_w=(BOT_W-5*g2)/6;
+if(px>=g2&&px<g2+key_w&&py>=cy&&py<cy+24){s->kb_shift=!s->kb_shift;return 1;}
+if(px>=g2*2+key_w&&px<g2*2+key_w+key_w*2&&py>=cy&&py<cy+24){
+int len=strlen(s->search_text);if(len<(int)sizeof(s->search_text)-2){s->search_text[len]=' ';s->search_text[len+1]=0;}return 1;}
+if(px>=g2*3+key_w*3&&px<g2*3+key_w*3+key_w&&py>=cy&&py<cy+24){
+int len=strlen(s->search_text);if(len>0)s->search_text[len-1]=0;return 1;}
+if(px>=g2*4+key_w*4&&px<g2*4+key_w*4+key_w&&py>=cy&&py<cy+24){s->search_text[0]=0;s->search_text_pos=0;return 1;}
+if(px>=g2*5+key_w*5&&px<g2*5+key_w*5+key_w&&py>=cy&&py<cy+24){
+if(strlen(s->search_text)>0){s->current_screen=SCREEN_SEARCH_RESULTS;s->selected_index=0;s->scroll_offset=0;return 2;}
+return 1;}
+return 0;
+}
 
+int ui_handle_touch(app_state_t *s,touchPosition *p){
+if(!s||!p)return 0;
+int px=p->px,py=p->py;
+if(py>=240){if(s->current_screen==SCREEN_SEARCH_INPUT)return handle_kb_touch(s,px,py-240);return 0;}
+switch(s->current_screen){
+case SCREEN_MAIN_MENU:{
+int bx=(TOP_W-200)/2;
+if(px>=bx&&px<bx+200&&py>=70&&py<70+48){s->current_screen=SCREEN_POPULAR;s->selected_index=0;s->scroll_offset=0;return 1;}
+if(px>=bx&&px<bx+200&&py>=140&&py<140+48){s->current_screen=SCREEN_SEARCH_INPUT;s->search_text[0]=0;s->kb_shift=0;return 1;}
+}break;
+default:break;
+}
+return 0;
+}
 int ui_handle_keys(app_state_t *s,u32 k){
 if(!s)return 0;
 switch(s->current_screen){
@@ -156,14 +281,25 @@ if(k&KEY_A){s->current_screen=SCREEN_POPULAR;s->selected_index=0;s->scroll_offse
 if(k&KEY_X){s->current_screen=SCREEN_SEARCH_INPUT;memset(s->search_text,0,128);s->kb_shift=0;return 1;}
 break;
 case SCREEN_POPULAR:
-case SCREEN_SEARCH_RESULTS:
+case SCREEN_SEARCH_RESULTS:{
+int cnt=(s->current_screen==SCREEN_POPULAR)?s->popular_list.count:s->search_list.count;
+int vis=(TOP_H-36-MARGIN)/LIST_ITEM_H;if(vis>MAX_VISIBLE_ITEMS)vis=MAX_VISIBLE_ITEMS;
+if(k&KEY_DOWN&&s->selected_index<cnt-1){s->selected_index++;if(s->selected_index>=s->scroll_offset+vis)s->scroll_offset++;return 1;}
+if(k&KEY_UP&&s->selected_index>0){s->selected_index--;if(s->selected_index<s->scroll_offset)s->scroll_offset--;return 1;}
 if(k&KEY_B){s->current_screen=SCREEN_MAIN_MENU;return 1;}
-break;
+if(k&KEY_A&&cnt>0&&s->selected_index>=0&&s->selected_index<cnt){
+bili_video_t *v=(s->current_screen==SCREEN_POPULAR)?&s->popular_list.videos[s->selected_index]:&s->search_list.videos[s->selected_index];
+s->current_video=*v;s->current_screen=SCREEN_VIDEO_DETAIL;return 1;}
+}break;
 case SCREEN_SEARCH_INPUT:
 if(k&KEY_B){s->current_screen=SCREEN_MAIN_MENU;return 1;}
 break;
 case SCREEN_VIDEO_DETAIL:
+if(k&KEY_A){return 2;}
 if(k&KEY_B){s->current_screen=SCREEN_POPULAR;return 1;}
+break;
+case SCREEN_PLAYING:
+if(k&KEY_B){s->current_screen=SCREEN_VIDEO_DETAIL;return 1;}
 break;
 default:break;
 }
