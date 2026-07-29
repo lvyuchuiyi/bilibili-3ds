@@ -55,28 +55,38 @@ void net_exit(void) {
     if (ac_ready) { acExit(); ac_ready = false; }
 }
 
+static struct curl_slist *add_headers(struct curl_slist *h, const char *v) {
+    return curl_slist_append(h, v);
+}
+
 int http_get(const char *url, http_response_t *resp) {
     if (!url || !resp) return -1;
     CURL *curl = curl_easy_init();
     if (!curl) return -1;
 
     struct write_mem chunk = {0};
-    char errbuf[CURL_ERROR_SIZE] = {0};
     long status = 0;
     int ret = -1;
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (3DS; BiliApp/1.0)");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 BiliApp/1.0");
     curl_easy_setopt(curl, CURLOPT_REFERER, "https://www.bilibili.com/");
+
+    struct curl_slist *headers = NULL;
+    headers = add_headers(headers, "Accept: application/json, text/plain, */*");
+    headers = add_headers(headers, "Origin: https://www.bilibili.com");
+    headers = add_headers(headers, "Accept-Language: zh-CN,zh;q=0.9");
+    /* Generic buvid3 cookie - Bilibili might need this */
+    headers = add_headers(headers, "Cookie: buvid3=test0123456789; fingerprint=test");
+    if (headers) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     CURLcode code = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
@@ -90,6 +100,7 @@ int http_get(const char *url, http_response_t *resp) {
     } else {
         if (chunk.data) free(chunk.data);
     }
+    if (headers) curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     return ret;
 }
