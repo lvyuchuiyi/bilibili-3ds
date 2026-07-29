@@ -2,6 +2,9 @@ name: Build BiliBili 3DS
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
 jobs:
   build:
     runs-on: ubuntu-latest
