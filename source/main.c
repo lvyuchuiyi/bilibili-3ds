@@ -6,7 +6,7 @@ int main(void) {
     C2D_Init(4096); 
     C2D_Prepare(); 
     gfxSet3D(false); 
-    C2D_Font font = C2D_FontLoadSystem(1); 
+    C2D_Font font = C2D_FontLoadSystem(0); 
     if (!font) return 1; 
     C2D_TextBuf buf = C2D_TextBufNew(65536); 
     if (!buf) { C2D_FontFree(font); return 1; } 
