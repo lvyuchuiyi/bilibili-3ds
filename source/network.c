@@ -7,39 +7,16 @@
 
 #define SOC_BUFSIZE (1024U * 1024U)
 
-/* ??????? SOC ?? */
 static void *soc_buf = NULL;
-static bool curl_ready = false;
-
-struct write_mem {
-    char *data;
-    size_t size;
-    size_t cap;
-};
-
-static size_t write_cb(char *ptr, size_t sz, size_t n, void *user) {
-    struct write_mem *m = (struct write_mem *)user;
-    size_t total = sz * n;
-    if (m->size + total >= m->cap) {
-        m->cap = m->cap ? m->cap * 2 : 65536;
-        char *p = realloc(m->data, m->cap);
-        if (!p) return 0;
-        m->data = p;
-    }
-    memcpy(m->data + m->size, ptr, total);
-    m->size += total;
-    m->data[m->size] = 0;
-    return total;
-}
+static bool net_ready = false;
 
 int net_init(void) {
-    if (curl_ready) return 0;
+    if (net_ready) return 0;
 
-    /* ??? SOC ??? */
+    /* ?? socInit????? curl */
     soc_buf = linearAlloc(SOC_BUFSIZE);
     if (!soc_buf) return -1;
 
-    /* ???? SOC */
     Result r = socInit(soc_buf, SOC_BUFSIZE);
     if (R_FAILED(r)) {
         linearFree(soc_buf);
@@ -47,69 +24,23 @@ int net_init(void) {
         return -2;
     }
 
-    /* ????? libcurl??? SOC ???? */
-    if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
-        socExit();
-        linearFree(soc_buf);
-        soc_buf = NULL;
-        return -3;
-    }
-    curl_ready = true;
+    net_ready = true;
     return 0;
 }
 
 void net_exit(void) {
-    if (curl_ready) { curl_global_cleanup(); curl_ready = false; }
-    socExit();
-    if (soc_buf) { linearFree(soc_buf); soc_buf = NULL; }
+    if (net_ready) {
+        socExit();
+        if (soc_buf) { linearFree(soc_buf); soc_buf = NULL; }
+        net_ready = false;
+    }
 }
 
 int http_get(const char *url, http_response_t *resp) {
-    if (!url || !resp) return -1;
-
-    CURL *curl = curl_easy_init();
-    if (!curl) return -1;
-
-    struct write_mem chunk = {0};
-    char errbuf[CURL_ERROR_SIZE] = {0};
-    long status = 0;
-    int ret = -1;
-
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT,
-        "Mozilla/5.0 (Linux; U; Android 4.4; 3DS) AppleWebKit/537.36 BiliApp/1.0");
-    curl_easy_setopt(curl, CURLOPT_REFERER, "https://www.bilibili.com/");
-
-    CURLcode code = curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
-
-    if (code == CURLE_OK && status >= 200 && status < 300 && chunk.data) {
-        resp->buf = chunk.data;
-        resp->buf_size = chunk.cap;
-        resp->data_len = chunk.size;
-        resp->parse_pos = 0;
-        ret = 0;
-    } else {
-        if (chunk.data) free(chunk.data);
-    }
-    curl_easy_cleanup(curl);
-    return ret;
+    (void)url; (void)resp;
+    return -99;
 }
 
 void http_response_free(http_response_t *resp) {
-    if (resp && resp->buf) {
-        free(resp->buf);
-        resp->buf = NULL;
-        resp->data_len = 0;
-        resp->buf_size = 0;
-    }
+    (void)resp;
 }
