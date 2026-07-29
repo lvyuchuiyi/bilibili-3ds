@@ -17,8 +17,10 @@ static C2D_TextBuf textbuf = NULL;
 #define CLR_WHITE  C2D_Color32(0xFF,0xFF,0xFF,0xFF)
 #define CLR_CARD   C2D_Color32(0xFF,0xFF,0xFF,0xFF)
 #define CLR_TLT    C2D_Color32(0x88,0x88,0x88,0xFF)
-#define TOP_W 400; #define TOP_H 240
-#define BOT_W 320; #define BOT_H 240
+#define TOP_W 400
+#define TOP_H 240
+#define BOT_W 320
+#define BOT_H 240
 
 static void draw_rect(int x, int y, int w, int h, u32 c) {
     C2D_DrawRectSolid(x, y, 0.5f, w, h, c);
