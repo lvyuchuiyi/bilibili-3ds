@@ -16,21 +16,16 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
-    - name: Install gh CLI
-      run: apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
     - name: Build
       run: make -j$(nproc) 2>&1
+    - name: Generate SMDH icon
+      run: smdhtool --create "BiliBili 3DS" "BiliBili client for 3DS" "Codex" bilibili3ds.smdh
     - name: Build CIA
-      run: makerom -f cia -o bilibili3ds.cia -elf bilibili3ds.elf -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+      run: |
+        makerom -f cia -o bilibili3ds.cia -elf bilibili3ds.elf -icon bilibili3ds.smdh -banner bilibili3ds.smdh -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: bilibili3ds-build
-        path: "*.3dsx\n*.cia"
+        path: "*.3dsx\n*.cia\n*.smdh"
         if-no-files-found: warn
-    - name: Create Release
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        git config --global --add safe.directory /__w/bilibili-3ds/bilibili-3ds
-        gh release create "v$(date +%Y%m%d-%H%M)" --title "BiliBili 3DS $(date +%Y-%m-%d)" bilibili3ds.cia bilibili3ds.3dsx

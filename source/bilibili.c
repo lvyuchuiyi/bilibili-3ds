@@ -89,6 +89,9 @@ int bili_popular(bili_video_list_t *list) {
     if (wbi_done && wbi_sign(api, "ps=20&pn=1", wbi_url, 512) == 0)
         final_url = wbi_url;
     int ret = http_get_json(final_url, &root);
+    /* Debug: capture response */
+    { http_response_t dr = {0}; if (http_get(final_url, &dr) == 0 && dr.buf) {
+        strncpy(debug_buf, dr.buf, 255); http_response_free(&dr); } }
     if (ret != 0) return ret;
 
     json_value_t *data = json_get(root, "data");
