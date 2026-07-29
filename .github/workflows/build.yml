@@ -15,18 +15,12 @@ jobs:
         unzip -o /tmp/makerom.zip -d /tmp/makerom
         cp /tmp/makerom/makerom /usr/local/bin/makerom
         chmod +x /usr/local/bin/makerom
-    - name: Build .3dsx
+        makerom -exthelp 2>&1 | head -20
+    - name: Build and make CIA
       run: |
-        make -j$(nproc) 2>&1
-        ls -la *.3dsx *.elf 2>/dev/null || true
-    - name: Build .cia
-      run: |
-        ELF=$(find . -name "*.elf" | head -1)
-        RSF=resources/bilibili3ds.rsf
-        echo "ELF=$ELF RSF=$RSF"
-        test -f "$RSF" && cat "$RSF" || echo "NO RSF"
-        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf "$RSF" 2>&1 || true
-        test -f bilibili3ds.cia && ls -la bilibili3ds.cia || echo "CIA FAILED"
+        make -j$(nproc) cia 2>&1
+        echo "=== Files ==="
+        find . -name "*.cia" -o -name "*.3dsx" -o -name "*.elf" 2>/dev/null
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -35,16 +29,3 @@ jobs:
           *.3dsx
           *.cia
         if-no-files-found: warn
-    - name: Install gh CLI
-      run: apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
-    - name: Create Release
-      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fix/full-app'
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        CIA_FILE=$(find . -name "*.cia" | head -1)
-        THREE_FILE=$(find . -name "*.3dsx" | head -1)
-        echo "CIA=$CIA_FILE 3DSX=$THREE_FILE"
-        if [ -z "$CIA_FILE" ]; then echo "No CIA"; exit 1; fi
-        TAG="v$(date +%Y%m%d-%H%M)"
-        gh release create "$TAG" --title "BiliBili 3DS $TAG" "$CIA_FILE" "$THREE_FILE"
