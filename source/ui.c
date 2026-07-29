@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "ui.h"
+#include "player.h"
 
 /* ===== 8x8 bitmap font: 0-9=0..9, A-Z=10..35, a-z=36..61, sp=62, :=63, -=64, /=65 ===== */
 static const unsigned char font[66][8]={
