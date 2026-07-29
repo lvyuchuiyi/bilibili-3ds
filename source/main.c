@@ -7,13 +7,17 @@ int main(void) {
     C2D_Prepare(); 
     gfxSet3D(false); 
     C3D_RenderTarget *top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT); 
-    if (!top) return 1; 
+    C3D_RenderTarget *bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT); 
+    if (!top || !bot) return 1; 
     while (aptMainLoop()) { 
         hidScanInput(); 
         if (hidKeysDown() & KEY_START) break; 
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW); 
         C2D_TargetClear(top, C2D_Color32(0x00,0x96,0xED,0xFF)); 
         C2D_SceneBegin(top); 
+        C2D_DrawRectSolid(0, 0, 0.5f, 400, 40, C2D_Color32(0xFF,0xFF,0xFF,0xFF)); 
+        C2D_TargetClear(bot, C2D_Color32(0xE8,0xE8,0xE8,0xFF)); 
+        C2D_SceneBegin(bot); 
         C3D_FrameEnd(0); 
     } 
     C2D_Fini(); C3D_Fini(); gfxExit(); 
