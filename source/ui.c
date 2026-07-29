@@ -1,5 +1,7 @@
 #include <3ds.h>
 #include <citro2d.h>
+#include <stdio.h>
+#include <string.h>
 #include "ui.h"
 
 /* [font data - same as step6] */
@@ -116,7 +118,28 @@ C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 C2D_TargetClear(t,CLR_BG);C2D_SceneBegin(t);
 switch(state->current_screen){
 case SCREEN_MAIN_MENU:render_main_menu();break;
-default:render_main_menu();break;
+case SCREEN_POPULAR:
+case SCREEN_SEARCH_RESULTS:{
+bili_video_list_t *lst=(state->current_screen==SCREEN_POPULAR)?&state->popular_list:&state->search_list;
+draw_rect(0,0,TOP_W,32,CLR_PRI);
+draw_str(12,8,CLR_W,state->current_screen==SCREEN_POPULAR?"Popular Videos":"Search Results");
+draw_str(TOP_W-80,8,CLR_W,"B-Back");
+if(!lst||lst->count==0){draw_str(60,100,CLR_TL,"No videos found");break;}
+int y=36;
+int vis=(TOP_H-36-MARGIN)/26;if(vis>MAX_VISIBLE_ITEMS)vis=MAX_VISIBLE_ITEMS;
+for(int i=state->scroll_offset;i<lst->count&&i<state->scroll_offset+vis;i++){
+bili_video_t *v=&lst->videos[i];
+int iy=y+(i-state->scroll_offset)*26;
+if(i==state->selected_index)draw_rect(MARGIN,iy,TOP_W-MARGIN*2,26,CLR_SEL);
+draw_rect(MARGIN,iy,22,26,CLR_RED);
+char idx[4];snprintf(idx,4,"%d",i+1);draw_str(MARGIN+2,iy+9,CLR_W,idx);
+char dt[60];int tl=strlen(v->title);
+if(tl>52){strncpy(dt,v->title,52);dt[52]=0;}else strcpy(dt,v->title);
+draw_str(MARGIN+28,iy+2,CLR_T,dt);
+draw_str(MARGIN+28,iy+14,CLR_TL,v->author);
+if(i<lst->count-1)draw_rect(MARGIN,iy+25,TOP_W-MARGIN*2,1,C2D_Color32(0xE0,0xE0,0xE0,0xFF));
+}}
+break;
 }
 C2D_TargetClear(b,C2D_Color32(0xE8,0xE8,0xE8,0xFF));C2D_SceneBegin(b);
 render_bottom_default(state->current_screen);
