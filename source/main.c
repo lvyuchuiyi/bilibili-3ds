@@ -11,10 +11,10 @@ int main(void) {
 
     int ret = net_init();
     u32 col;
-    if (ret == 0) col = C2D_Color32(0,255,0,255);       /* green */
-    else if (ret == -1) col = C2D_Color32(255,0,0,255);   /* red */
-    else if (ret == -2) col = C2D_Color32(255,255,0,255); /* yellow */
-    else col = C2D_Color32(0,0,255,255);                   /* blue */
+    if (ret == 0) col = C2D_Color32(0,255,0,255);
+    else if (ret == -1) col = C2D_Color32(255,0,0,255);
+    else if (ret == -2) col = C2D_Color32(255,255,0,255);
+    else col = C2D_Color32(0,0,255,255);
 
     while (aptMainLoop()) {
         hidScanInput(); if (hidKeysDown() & KEY_START) break;
