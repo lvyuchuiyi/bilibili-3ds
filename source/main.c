@@ -1,4 +1,5 @@
 #include <3ds.h>
+#include <citro2d.h>
 #include <stdio.h>
 #include "network.h"
 
@@ -9,11 +10,11 @@ int main(void) {
     if (!t) return 1;
 
     int ret = net_init();
-    /* 0=green(GREEN) -1=red(RED) -2=yellow(YELLOW) -3=blue(BLUE) */
-    u32 colors[] = {0xFF00FF00, 0xFFFF0000, 0xFFFFFF00, 0xFF0000FF};
-    u32 col = (ret == 0) ? colors[0] : (ret <= -3) ? colors[3] : colors[-ret];
-
-    char text[64]; snprintf(text, 64, "NET_INIT=%d", ret);
+    u32 col;
+    if (ret == 0) col = C2D_Color32(0,255,0,255);       /* green */
+    else if (ret == -1) col = C2D_Color32(255,0,0,255);   /* red */
+    else if (ret == -2) col = C2D_Color32(255,255,0,255); /* yellow */
+    else col = C2D_Color32(0,0,255,255);                   /* blue */
 
     while (aptMainLoop()) {
         hidScanInput(); if (hidKeysDown() & KEY_START) break;
