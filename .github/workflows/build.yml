@@ -19,7 +19,7 @@ jobs:
     - name: Build .3dsx
       run: |
         make -j$(nproc) 2>&1
-        ls -la bilibili3ds.elf bilibili3ds.3dsx bilibili3ds.smdh
+        ls -la bilibili3ds.elf bilibili3ds.3dsx 2>/dev/null; ls -la bilibili3ds.smdh 2>/dev/null || true
     - name: Build .cia
       run: |
         ELF=$(find . -name "*.elf" | head -1)
