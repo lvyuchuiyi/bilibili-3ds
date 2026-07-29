@@ -18,11 +18,22 @@ jobs:
         chmod +x /usr/local/bin/makerom
     - name: Build
       run: make -j$(nproc) 2>&1
+    - name: Generate icon
+      run: |
+        smdhtool --create "BILIBILI3D" "BiliBili for 3DS" "Codex" bilibili3ds.smdh 2>/dev/null || \
+        convert -size 48x48 xc:"#00a1d6" icon.png 2>/dev/null && \
+        smdhtool --create "BILIBILI3D" "BiliBili for 3DS" "Codex" icon.png bilibili3ds.smdh 2>/dev/null || true
+        ls -la *.smdh 2>/dev/null || echo "NO SMDH"
     - name: Build CIA
       run: |
-        SMDH=$(find . -name "*.smdh" | head -1)
         ELF=$(find . -name "*.elf" | head -1)
-        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+        SMDH=$(find . -name "*.smdh" | head -1)
+        if [ -n "$SMDH" ]; then
+          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+        else
+          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+        fi
+        ls -la *.cia
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
