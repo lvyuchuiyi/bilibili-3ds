@@ -1,15 +1,12 @@
 #include <3ds.h>
 #include <string.h>
-
-static u32 *m = NULL;
+#include "network.h"
 
 int main(void) {
     gfxInitDefault();
-    m = (u32*)linearAlloc(0x100000);
-    int ret = -99;
-    if (m) {
-        ret = R_SUCCEEDED(socInit(m, 0x100000)) ? 0 : -2;
-    }
+
+    /* net_init() handles SOC + libcurl init via curl_global_init */
+    int ret = net_init();
 
     /* Display result - use raw framebuffer without citro2d */
     u8 *fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
@@ -21,6 +18,7 @@ int main(void) {
         hidScanInput();
         if (hidKeysDown() & KEY_START) break;
     }
+    net_exit();
     gfxExit();
     return 0;
 }
