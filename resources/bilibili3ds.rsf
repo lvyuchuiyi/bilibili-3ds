@@ -1,14 +1,84 @@
 BasicInfo:
-  Title: "BiliBili 3DS"
-  ProductCode: "BILI0001"
+  Title: BiliBili 3DS
+  ProductCode: CTR-H-BILI
+  Logo: Homebrew
 
 TitleInfo:
   Category: Application
   UniqueId: 0x55555
 
 Option:
-  UseOnSD: false
-  FreeProductCode: true
+  UseOnSD: true
+  FreeProductCode: false
+  EnableCrypt: false
+
+AccessControlInfo:
+  CoreVersion: 2
+  DescVersion: 2
+  ReleaseKernelMajor: "02"
+  ReleaseKernelMinor: "33"
+
+  FileSystemAccess:
+    - DirectSdmc
+    - DirectSdmcWrite
+
+  MemoryType: Application
+  SystemMode: 64MB
+  SystemModeExt: Legacy
+  IdealProcessor: 0
+  AffinityMask: 1
+  Priority: 16
+  MaxCpu: 0x9E
+  HandleTableSize: 0x200
+  DisableDebug: false
+  CanWriteSharedPage: true
+  CanUseNonAlphabetAndNumber: true
+  PermitMainFunctionArgument: true
+  CpuSpeed: 268MHz
+  EnableL2Cache: false
+  CanAccessCore2: false
+
+  SystemCallAccess:
+    ControlMemory: 1
+    QueryMemory: 2
+    ExitProcess: 3
+    CreateThread: 8
+    ExitThread: 9
+    SleepThread: 10
+    ReleaseMutex: 20
+    CreateEvent: 23
+    SignalEvent: 24
+    ClearEvent: 25
+    CreateMemoryBlock: 30
+    MapMemoryBlock: 31
+    UnmapMemoryBlock: 32
+    CreateAddressArbiter: 33
+    ArbitrateAddress: 34
+    CloseHandle: 35
+    WaitSynchronization1: 36
+    WaitSynchronizationN: 37
+    DuplicateHandle: 39
+    GetSystemTick: 40
+    GetSystemInfo: 42
+    ConnectToPort: 45
+    SendSyncRequest: 50
+    GetResourceLimit: 56
+    GetResourceLimitLimitValues: 57
+    GetResourceLimitCurrentValues: 58
+
+  ServiceAccessControl:
+    - APT:U
+    - cfg:u
+    - fs:USER
+    - gsp::Gpu
+    - hid:USER
+    - ptm:u
+    - soc:U
+    - ssl:C
+    - http:C
+    - ac:u
 
 SystemControlInfo:
+  SaveDataSize: 0KB
+  RemasterVersion: 0
   StackSize: 0x100000
