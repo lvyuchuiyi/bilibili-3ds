@@ -5,11 +5,21 @@
 #include <curl/curl.h>
 #include "network.h"
 
+/* libcurl for 3DS may have a static constructor (runs before main) that
+ * calls socInit.  We handle both cases:
+ *   - Constructor present: socInit already active when we start,
+ *     only call curl_global_init to finish libcurl setup.
+ *   - Constructor absent: call socInit ourselves, then curl_global_init.
+ *
+ * The weak globals __curl_soc_buffer / __curl_soc_buffer_size tell the
+ * constructor (if it exists) how much linear memory to allocate for SOC. */
 #define SOC_BUFSIZE (1024U * 1024U)
 
-/* ??????? SOC ?? */
-static void *soc_buf = NULL;
+void *__curl_soc_buffer = NULL;
+u32   __curl_soc_buffer_size = SOC_BUFSIZE;
+
 static bool curl_ready = false;
+static bool soc_ours = false;  /* did we allocate the buffer ourselves? */
 
 struct write_mem {
     char *data;
@@ -35,25 +45,22 @@ static size_t write_cb(char *ptr, size_t sz, size_t n, void *user) {
 int net_init(void) {
     if (curl_ready) return 0;
 
-    /* ??? SOC ??? */
-    soc_buf = linearAlloc(SOC_BUFSIZE);
-    if (!soc_buf) return -1;
-
-    /* ???? SOC */
-    Result r = socInit(soc_buf, SOC_BUFSIZE);
-    if (R_FAILED(r)) {
-        linearFree(soc_buf);
-        soc_buf = NULL;
-        return -2;
+    /* Try to init SOC ourselves. If constructor already did it
+     * (newer devkitPro libcurl with constructor), socInit fails
+     * harmlessly and SOC is already active. Either way we proceed. */
+    void *buf = linearAlloc(SOC_BUFSIZE);
+    if (buf) {
+        Result r = socInit(buf, SOC_BUFSIZE);
+        if (R_SUCCEEDED(r)) {
+            __curl_soc_buffer = buf;
+            soc_ours = true;
+        } else {
+            linearFree(buf);  /* constructor already init''ed SOC */
+        }
     }
 
-    /* ????? libcurl??? SOC ???? */
-    if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
-        socExit();
-        linearFree(soc_buf);
-        soc_buf = NULL;
+    if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)
         return -3;
-    }
     curl_ready = true;
     return 0;
 }
@@ -61,7 +68,9 @@ int net_init(void) {
 void net_exit(void) {
     if (curl_ready) { curl_global_cleanup(); curl_ready = false; }
     socExit();
-    if (soc_buf) { linearFree(soc_buf); soc_buf = NULL; }
+    if (soc_ours && __curl_soc_buffer)
+        linearFree(__curl_soc_buffer);
+    __curl_soc_buffer = NULL;
 }
 
 int http_get(const char *url, http_response_t *resp) {
