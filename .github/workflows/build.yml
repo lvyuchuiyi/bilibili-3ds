@@ -26,6 +26,10 @@ jobs:
           *.cia
           *.smdh
         if-no-files-found: warn
+    - name: Install gh CLI
+      run: |
+        apt-get update -qq
+        apt-get install -y -qq gh 2>/dev/null || true
     - name: Create Release
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fix/full-app'
       env:
