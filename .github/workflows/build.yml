@@ -26,3 +26,13 @@ jobs:
           *.cia
           *.smdh
         if-no-files-found: warn
+    - name: Create Release
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fix/full-app'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        TAG="v$(date +%Y%m%d-%H%M%S)"
+        gh release create "$TAG" \
+          --title "BiliBili 3DS $TAG" \
+          --notes "Auto-build from commit ${{ github.sha }}" \
+          bilibili3ds.cia bilibili3ds.3dsx
