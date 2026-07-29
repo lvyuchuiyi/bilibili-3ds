@@ -19,11 +19,7 @@ jobs:
       run: make -j$(nproc) 2>&1
     - name: Build .cia
       run: |
-        ELF=$(find . -name "*.elf" | head -1)
-        ls -la "$ELF"
-        cat resources/bilibili3ds.rsf
-        makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
-        ls -la *.cia 2>/dev/null || echo "No CIA"
+        makerom -f cia -o bilibili3ds.cia -elf bilibili3ds.elf -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -32,3 +28,13 @@ jobs:
           *.3dsx
           *.cia
         if-no-files-found: warn
+    - name: Install gh CLI
+      run: apt-get update -qq && apt-get install -y -qq gh 2>/dev/null || true
+    - name: Create Release
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fix/full-app'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release create "v$(date +%Y%m%d-%H%M)" \
+          --title "BiliBili 3DS $(date +%Y-%m-%d)" \
+          bilibili3ds.cia bilibili3ds.3dsx
