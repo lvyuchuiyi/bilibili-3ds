@@ -38,8 +38,10 @@ static void draw_text(int x, int y, float sc, u32 col, const char *f, ...) {
 int ui_init(void) {
     gfxInitDefault();
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-    C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+    C2D_Init(4096);
     C2D_Prepare();
+    C3D_AlphaTest(true, GPU_GREATER, 0);  /* Discard transparent font padding */
+    gfxSet3D(false);
     font = C2D_FontLoadSystem(1);
     if (!font) return -1;
     textbuf = C2D_TextBufNew(65536);
@@ -58,8 +60,8 @@ void ui_exit(void) {
 
 void ui_render(app_state_t *state) {
     if (!state) return;
-    C2D_TextBufClear(textbuf);
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TextBufClear(textbuf);
     C2D_TargetClear(top_target, CLR_BG);
     C2D_SceneBegin(top_target);
     draw_rect(0, 0, TOP_W, 40, CLR_PRI);
@@ -78,3 +80,4 @@ void ui_render(app_state_t *state) {
 
 int ui_handle_touch(app_state_t *s, touchPosition *t) { (void)s;(void)t;return 0; }
 int ui_handle_keys(app_state_t *s, u32 k) { (void)s;(void)k;return 0; }
+
