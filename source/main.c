@@ -47,7 +47,7 @@ static void request_load(int kind) {
     app_load_state = 1;
     app_load_timed_out = 0;
     load_start_tick = osGetTime();
-    load_thread = threadCreate(load_thread_func, NULL, 64 * 1024, 0x30, -1, false);
+    load_thread = threadCreate(load_thread_func, NULL, 64 * 1024, 0x3F, -1, false);
     if (!load_thread) load_state = 0;
 }
 
@@ -139,6 +139,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 

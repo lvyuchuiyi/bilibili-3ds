@@ -185,6 +185,7 @@ int http_get(const char *url, http_response_t *resp) {
                 remaining - 1);
             if (ret == MBEDTLS_ERR_SSL_WANT_READ ||
                 ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
+                svcSleepThread(1000000);  /* 1ms yield to avoid busy loop */
                 continue;
             }
             if (ret <= 0) {
@@ -224,6 +225,7 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
 
