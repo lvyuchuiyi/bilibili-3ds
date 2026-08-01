@@ -12,11 +12,14 @@
 
 #define TOUCH_HOLD_FRAMES 5
 
+int main_debug_load_count = -1;  /* count right after bili_popular returns */
+
 static app_state_t state;
 static int load_requested = 0; /* 0=none, 1=popular, 2=search */
 
 static void load_popular(void) {
     int ret = bili_popular(&state.popular_list);
+    main_debug_load_count = state.popular_list.count;
     (void)ret;
 }
 
