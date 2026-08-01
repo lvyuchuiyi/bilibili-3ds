@@ -220,11 +220,6 @@ extern void player_render(void);
 player_render();
 draw_str(TOP_W/2-80,TOP_H-20,CLR_TL,"B-Stop X-Pause");
 }
-(void)p;
-draw_rect(0,0,TOP_W,TOP_H,C2D_Color32(0x00,0x00,0x00,0xFF));
-draw_str(TOP_W/2-60,TOP_H/2-10,CLR_W,"Playing...");
-draw_str(TOP_W/2-80,TOP_H/2+16,CLR_TL,"B-Stop X-Pause");
-}
 
 /* ===== Bottom screen renderers ===== */
 static void render_keyboard(const char *text,int shift){

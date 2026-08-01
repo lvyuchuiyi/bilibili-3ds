@@ -29,6 +29,7 @@ static int h264_offset = 0;
 static int decoded_frames = 0;
 
 static C3D_Tex video_tex;
+static C2D_Image video_image;
 static bool tex_ready = false;
 
 int player_init(void) {
@@ -68,6 +69,8 @@ int player_init(void) {
     /* C2D texture for video output */
     if (C3D_TexInit(&video_tex, PLAY_WIDTH, PLAY_HEIGHT, GPU_RGB565)) {
         C3D_TexSetFilter(&video_tex, GPU_LINEAR, GPU_LINEAR);
+        video_image.tex = &video_tex;
+        video_image.subtex = NULL;
         tex_ready = true;
     }
     return 0;
@@ -216,9 +219,10 @@ void player_render(void) {
 
     memcpy(video_tex.data, output_buf, PLAY_WIDTH * PLAY_HEIGHT * 2);
     C3D_TexFlush(&video_tex);
-    C2D_DrawImageAt(&video_tex.image, 0, 0, 0.5f, NULL, 1.0f, 1.0f);
+    C2D_DrawImageAt(video_image, 0, 0, 0.5f, NULL, 1.0f, 1.0f);
 }
 
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
