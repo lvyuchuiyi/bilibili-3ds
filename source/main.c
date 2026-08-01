@@ -51,7 +51,7 @@ static void load_thread_func(void *arg) {
             if (pu) {
                 strncpy(app_debug_playurl, pu, sizeof(app_debug_playurl) - 1);
                 app_debug_playurl[sizeof(app_debug_playurl) - 1] = 0;
-                if (player_load(pu) == 0) {
+                if (player_init() == 0 && player_load(pu) == 0) {
                     state.current_screen = SCREEN_PLAYING;
                 }
                 free(pu);
@@ -100,7 +100,6 @@ int main(void) {
     if (ui_init() != 0) return 1;
 
     int net_ok = (net_init() == 0);
-    int player_ok = (player_init() == 0);
 
     memset(&state, 0, sizeof(state));
     state.current_screen = SCREEN_MAIN_MENU;
@@ -166,7 +165,7 @@ int main(void) {
         }
         prev_screen = state.current_screen;
 
-        if (state.current_screen == SCREEN_PLAYING && player_ok) {
+        if (state.current_screen == SCREEN_PLAYING) {
             player_update();
         }
 
@@ -183,6 +182,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 

@@ -72,14 +72,8 @@ int player_init(void) {
     MVDSTD_SetConfig(&mvd_config);
     mvd_initialized = true;
 
-    /* C2D texture for video output */
-    if (C3D_TexInit(&video_tex, PLAY_WIDTH, PLAY_HEIGHT, GPU_RGB565)) {
-        C3D_TexSetFilter(&video_tex, GPU_LINEAR, GPU_LINEAR);
-        video_image.tex = &video_tex;
-        video_image.subtex = NULL;
-        tex_ready = true;
-    }
     return 0;
+
 }
 
 void player_exit(void) {
@@ -223,8 +217,20 @@ player_state_t player_update(void) {
 
 /* Upload latest frame to C2D texture and draw on top screen */
 void player_render(void) {
-    if (!tex_ready || !mvd_initialized) return;
+    if (!mvd_initialized) return;
     if (p_info.state != PLAYER_PLAYING && p_info.state != PLAYER_PAUSED) return;
+
+    /* Lazily create texture on first render (inside C3D frame) */
+    if (!tex_ready) {
+        if (C3D_TexInit(&video_tex, PLAY_WIDTH, PLAY_HEIGHT, GPU_RGB565)) {
+            C3D_TexSetFilter(&video_tex, GPU_LINEAR, GPU_LINEAR);
+            video_image.tex = &video_tex;
+            video_image.subtex = NULL;
+            tex_ready = true;
+        } else {
+            return;
+        }
+    }
 
     memcpy(video_tex.data, output_buf, PLAY_WIDTH * PLAY_HEIGHT * 2);
     C3D_TexFlush(&video_tex);
@@ -234,5 +240,6 @@ void player_render(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
 
 
