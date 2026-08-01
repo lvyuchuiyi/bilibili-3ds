@@ -14,6 +14,7 @@ int net_debug_http_ret = 0; /* last http_get return code */
 int net_debug_http_status = 0; /* HTTP status code */
 int net_debug_stage = 0;       /* 0=start 1=socket 2=connect 3=ssl 4=send 5=read 6=done */
 char net_debug_raw[64] = "";         /* first bytes of response */
+int net_debug_sslc_ret = 0;                /* last sslcRead result */
 
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
@@ -212,6 +213,7 @@ int http_get(const char *url, http_response_t *resp) {
         }
 
         r = sslcRead(&sslc_ctx, resp->buf + resp->data_len, remaining - 1, false);
+        net_debug_sslc_ret = (int)r;
         if (R_FAILED(r)) break;  /* EOF or error: response complete */
         if ((int)r == 0) break;
         resp->data_len += (int)r;
@@ -241,4 +243,5 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
