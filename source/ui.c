@@ -195,15 +195,18 @@ draw_rect(0,0,BOT_W,24,CLR_CARD);
 char dbg[64];
 extern int net_debug_status;
 extern int net_debug_http_ret;
+extern int net_debug_http_status;
 extern int bili_debug_wbi_ok;
 extern int bili_debug_last_ret;
 extern int main_debug_load_count;
 extern int bili_debug_parse_count;
 extern int bili_debug_after_free;
-snprintf(dbg,sizeof(dbg),"net:%X http:%d wbi:%d ret:%d",net_debug_status,net_debug_http_ret,bili_debug_wbi_ok,bili_debug_last_ret);
+snprintf(dbg,sizeof(dbg),"net:%X st:%d wbi:%d ret:%d",net_debug_status,net_debug_http_status,bili_debug_wbi_ok,bili_debug_last_ret);
 draw_str(4,224,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"load:%d pc:%d af:%d",main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
 draw_str(4,234,CLR_TL,dbg);
+extern char bili_debug_resp[64];
+char dbgr[32];strncpy(dbgr,bili_debug_resp,30);dbgr[30]=0;draw_str(4,200,CLR_RED,dbgr);
 }
 switch(screen){
 case SCREEN_MAIN_MENU:

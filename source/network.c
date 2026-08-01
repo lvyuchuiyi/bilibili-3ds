@@ -12,6 +12,7 @@
 
 int net_debug_status = 0;  /* 0=OK, negative=init error */
 int net_debug_http_ret = 0; /* last http_get return code */
+int net_debug_http_status = 0; /* HTTP status code */
 
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
@@ -192,6 +193,9 @@ int http_get(const char *url, http_response_t *resp) {
             resp->data_len += ret;
         }
         resp->buf[resp->data_len] = '\0';
+        /* Parse HTTP status line */
+        if (sscanf(resp->buf, "HTTP/%*s %d", &net_debug_http_status) != 1)
+            net_debug_http_status = 0;
 
     } while (0);
 
@@ -219,5 +223,6 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
