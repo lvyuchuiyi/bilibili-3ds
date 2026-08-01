@@ -212,7 +212,7 @@ draw_str(4,234,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"rc:%d hd:%d dc:%d hl:%d",bili_debug_root_count,bili_debug_has_data,bili_debug_data_count,bili_debug_has_list);
 draw_str(4,214,CLR_TL,dbg);
 extern char bili_debug_resp[64];
-char dbgr[32];strncpy(dbgr,bili_debug_resp,30);dbgr[30]=0;draw_str(4,200,CLR_RED,dbgr);
+char dbgr[32];for(int hi=0;hi<12;hi++){snprintf(dbgr+hi*2,3,"%02X",(unsigned char)bili_debug_resp[hi]);}dbgr[24]=0;draw_str(4,200,CLR_RED,dbgr);
 }
 switch(screen){
 case SCREEN_MAIN_MENU:
