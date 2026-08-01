@@ -1,5 +1,5 @@
 /*
- * main.c - BiliBili 3DS: UI + synchronous network loading
+ * main.c - BiliBili 3DS: async network thread, UI always renders
  */
 
 #include <string.h>
@@ -22,31 +22,55 @@ int app_load_stage = 0;
 u32 __stacksize__ = 64U * 1024U;
 
 static app_state_t state;
+static volatile int load_requested = 0;
+static volatile int load_state = 0;  /* 0=idle 1=loading 2=done */
+static Thread load_thread = NULL;
+static u64 load_start_tick = 0;
 
-static void load_popular(void) {
-    app_load_stage = 2;
-    extern int net_debug_stage;
-    net_debug_stage = -1;
-
-    int ret = bili_popular(&state.popular_list);
-    main_debug_load_count = state.popular_list.count;
-    (void)ret;
-
+static void load_thread_func(void *arg) {
+    (void)arg;
+    if (load_requested == 1) {
+        app_load_stage = 2;
+        bili_popular(&state.popular_list);
+        main_debug_load_count = state.popular_list.count;
+    } else if (load_requested == 2) {
+        if (strlen(state.search_text) > 0) {
+            app_load_stage = 2;
+            bili_search(state.search_text, &state.search_list);
+        }
+    }
     app_load_stage = 3;
-    app_loading = 0;
-    app_load_state = 0;
+    load_state = 2;
 }
 
-static void load_search(void) {
-    if (strlen(state.search_text) == 0) return;
-    app_load_stage = 2;
+static void request_load(int kind) {
+    if (load_state != 0) return;
+    load_requested = kind;
+    load_state = 1;
+    app_loading = 1;
+    app_load_state = 1;
+    app_load_timed_out = 0;
+    app_load_stage = 1;
+    load_start_tick = osGetTime();
+    load_thread = threadCreate(load_thread_func, NULL, 64 * 1024, 0x3F, -1, false);
+    if (!load_thread) {
+        load_state = 0;
+        app_loading = 0;
+        app_load_state = 0;
+        app_load_stage = 0;
+    }
+}
 
-    int ret = bili_search(state.search_text, &state.search_list);
-    (void)ret;
-
-    app_load_stage = 3;
-    app_loading = 0;
-    app_load_state = 0;
+static void finish_load(void) {
+    if (load_state == 2 && load_thread) {
+        threadJoin(load_thread, U64_MAX);
+        threadFree(load_thread);
+        load_thread = NULL;
+        load_state = 0;
+        load_requested = 0;
+        app_loading = 0;
+        app_load_state = 0;
+    }
 }
 
 int main(void) {
@@ -66,11 +90,24 @@ int main(void) {
     static int prev_screen = SCREEN_SPLASH;
 
     while (aptMainLoop()) {
+        finish_load();
+
+        /* Watchdog: if loading takes >15s, stop showing Loading */
+        if (app_load_state == 1 && osGetTime() - load_start_tick > 15000) {
+            app_load_timed_out = 1;
+            app_loading = 0;
+        }
+
         hidScanInput();
         u32 keys_down = hidKeysDown();
         touchPosition touch;
         hidTouchRead(&touch);
 
+        /* B always works during loading */
+        if ((keys_down & KEY_B) && app_loading) {
+            state.current_screen = SCREEN_MAIN_MENU;
+            state.prev_screen = SCREEN_MAIN_MENU;
+        }
         int handled = ui_handle_keys(&state, keys_down);
         (void)handled;
 
@@ -92,39 +129,25 @@ int main(void) {
 
         memcpy(&last_touch, &touch, sizeof(touch));
 
-        /* Detect screen transitions and set loading flag */
+        /* Detect screen transitions and start async load */
         if (state.current_screen == SCREEN_POPULAR &&
             prev_screen != SCREEN_POPULAR) {
-            if (net_ok && !app_loading) {
-                app_loading = 1;
-                app_load_state = 1;
-                app_load_timed_out = 0;
-                app_load_stage = 1;
-            }
+            if (net_ok) request_load(1);
         }
         if (state.current_screen == SCREEN_SEARCH_RESULTS &&
             prev_screen == SCREEN_SEARCH_INPUT) {
-            if (net_ok && !app_loading) {
-                app_loading = 1;
-                app_load_state = 1;
-                app_load_timed_out = 0;
-                app_load_stage = 1;
-            }
+            if (net_ok) request_load(2);
         }
         prev_screen = state.current_screen;
 
-        /* Render first (shows Loading if flag set) */
+        /* Render every frame; Loading text shown while app_loading */
         ui_render(&state);
-
-        /* Then block on network request */
-        if (app_loading) {
-            if (state.current_screen == SCREEN_POPULAR)
-                load_popular();
-            else if (state.current_screen == SCREEN_SEARCH_RESULTS)
-                load_search();
-        }
     }
 
+    if (load_state == 1) {
+        threadJoin(load_thread, U64_MAX);
+        threadFree(load_thread);
+    }
     net_exit();
     ui_exit();
     return 0;

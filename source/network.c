@@ -3,29 +3,16 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <3ds.h>
-#include <mbedtls/net_sockets.h>
-#include <mbedtls/ssl.h>
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/error.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include "network.h"
 
 int net_debug_status = 0;  /* 0=OK, negative=init error */
 int net_debug_http_ret = 0; /* last http_get return code */
 int net_debug_http_status = 0; /* HTTP status code */
-int net_debug_stage = 0;               /* 0=start 1=seed 2=connect 3=config 4=handshake 5=send 6=read 7=done */
-
-/* Simple LCG entropy: avoids sslcGenerateRandomData hang in Azahar.
- * Not cryptographically strong, but this app does not verify certs. */
-static int simple_entropy(void *data, unsigned char *output, size_t len) {
-    (void)data;
-    u64 t = svcGetSystemTick();
-    for (size_t i = 0; i < len; i++) {
-        t = t * 6364136223846793005ULL + 1442695040888963407ULL;
-        output[i] = (unsigned char)(t >> 32);
-    }
-    return 0;
-}
+int net_debug_stage = 0;       /* 0=start 1=socket 2=connect 3=ssl 4=send 5=read 6=done */
 
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
@@ -38,9 +25,6 @@ int net_init(void) {
 
     if (R_SUCCEEDED(acInit())) ac_initialized = true;
 
-    /* mbedtls entropy source uses sslcGenerateRandomData (ssl:C) */
-    if (R_SUCCEEDED(sslcInit(0))) sslc_initialized = true;
-
     soc_mem = (u32*)memalign(0x1000, 0x100000);
     if (!soc_mem) {
         net_debug_status = -1;
@@ -49,27 +33,29 @@ int net_init(void) {
 
     Result r = socInit(soc_mem, 0x100000);
     if (R_FAILED(r)) {
-        net_debug_status = (int)r;  /* show actual Result code */
+        net_debug_status = (int)r;
         free(soc_mem);
         soc_mem = NULL;
         return -2;
     }
     soc_initialized = true;
+
+    if (R_SUCCEEDED(sslcInit(0))) sslc_initialized = true;
     return 0;
 }
 
 void net_exit(void) {
-    if (soc_initialized) {
-        socExit();
-        if (soc_mem) {
-            free(soc_mem);
-            soc_mem = NULL;
-        }
-        soc_initialized = false;
-    }
     if (sslc_initialized) {
         sslcExit();
         sslc_initialized = false;
+    }
+    if (soc_initialized) {
+        socExit();
+        soc_initialized = false;
+    }
+    if (soc_mem) {
+        free(soc_mem);
+        soc_mem = NULL;
     }
     if (ac_initialized) {
         acExit();
@@ -122,121 +108,123 @@ int http_get(const char *url, http_response_t *resp) {
     if (parse_url(url, host, sizeof(host), path, sizeof(path), port, sizeof(port)) != 0)
         return -1;
 
-    mbedtls_net_context net_ctx;
-    mbedtls_ssl_context ssl_ctx;
-    mbedtls_ssl_config ssl_conf;
-    mbedtls_ctr_drbg_context ctr_drbg;
-
-    mbedtls_net_init(&net_ctx);
-    mbedtls_ssl_init(&ssl_ctx);
-    mbedtls_ssl_config_init(&ssl_conf);
-    mbedtls_ctr_drbg_init(&ctr_drbg);
-
-    int ret = -1;
     net_debug_stage = 0;
 
-    do {
-        ret = mbedtls_ctr_drbg_seed(&ctr_drbg, simple_entropy, NULL, NULL, 0);
-        if (ret != 0) break;
-        net_debug_stage = 1;
-
-        ret = mbedtls_net_connect(&net_ctx, host, port,
-                                   MBEDTLS_NET_PROTO_TCP);
-        if (ret != 0) break;
-        net_debug_stage = 2;
-
-        ret = mbedtls_ssl_config_defaults(&ssl_conf,
-                    MBEDTLS_SSL_IS_CLIENT,
-                    MBEDTLS_SSL_TRANSPORT_STREAM,
-                    MBEDTLS_SSL_PRESET_DEFAULT);
-        if (ret != 0) break;
-        net_debug_stage = 3;
-
-        mbedtls_ssl_conf_authmode(&ssl_conf, MBEDTLS_SSL_VERIFY_NONE);
-        mbedtls_ssl_conf_rng(&ssl_conf, mbedtls_ctr_drbg_random, &ctr_drbg);
-        mbedtls_ssl_conf_read_timeout(&ssl_conf, 5000);
-
-        ret = mbedtls_ssl_setup(&ssl_ctx, &ssl_conf);
-        if (ret != 0) break;
-
-        ret = mbedtls_ssl_set_hostname(&ssl_ctx, host);
-        if (ret != 0) break;
-
-        mbedtls_ssl_set_bio(&ssl_ctx, &net_ctx,
-                            mbedtls_net_send, NULL,
-                            mbedtls_net_recv_timeout);
-
-        ret = mbedtls_ssl_handshake(&ssl_ctx);
-        if (ret != 0) break;
-        net_debug_stage = 4;
-
-        char request[2048];
-        snprintf(request, sizeof(request),
-            "GET %s HTTP/1.1\r\n"
-            "Host: %s\r\n"
-            "User-Agent: Mozilla/5.0 (Linux; U; Android 4.4; 3DS) "
-            "AppleWebKit/537.36 BiliApp/1.0\r\n"
-            "Referer: https://www.bilibili.com/client\r\n"
-            "Origin: https://www.bilibili.com\r\n"
-            "Accept: application/json, text/plain, */*\r\n"
-            "Connection: close\r\n"
-            "\r\n",
-            path, host);
-
-        ret = mbedtls_ssl_write(&ssl_ctx,
-                                 (unsigned char*)request, strlen(request));
-        if (ret <= 0) { ret = -1; break; }
-        net_debug_stage = 5;
-
-        resp->buf = malloc(NET_BUF_SIZE);
-        if (!resp->buf) { ret = -1; break; }
-        resp->buf_size = NET_BUF_SIZE;
-        resp->data_len = 0;
-        resp->parse_pos = 0;
-
-        net_debug_stage = 6;
-        while (1) {
-            int remaining = resp->buf_size - resp->data_len;
-            if (remaining <= 0) {
-                resp->buf_size *= 2;
-                char *nb = realloc(resp->buf, resp->buf_size);
-                if (!nb) { ret = -1; break; }
-                resp->buf = nb;
-                remaining = resp->buf_size - resp->data_len;
-            }
-
-            ret = mbedtls_ssl_read(&ssl_ctx,
-                (unsigned char*)resp->buf + resp->data_len,
-                remaining - 1);
-            if (ret == MBEDTLS_ERR_SSL_WANT_READ ||
-                ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
-                svcSleepThread(1000000);  /* 1ms yield to avoid busy loop */
-                continue;
-            }
-            if (ret <= 0) {
-                ret = 0;
-                break;
-            }
-            resp->data_len += ret;
-        }
-        resp->buf[resp->data_len] = '\0';
-        /* Parse HTTP status line */
-        if (sscanf(resp->buf, "HTTP/%*s %d", &net_debug_http_status) != 1)
-            net_debug_http_status = 0;
-
-    } while (0);
-
-    mbedtls_ssl_free(&ssl_ctx);
-    mbedtls_ssl_config_free(&ssl_conf);
-    mbedtls_net_free(&net_ctx);
-    mbedtls_ctr_drbg_free(&ctr_drbg);
-
-    if (ret != 0 && resp->buf) {
-        free(resp->buf);
-        resp->buf = NULL;
-        net_debug_http_ret = ret;
-        return ret;
+    /* Create socket */
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        net_debug_http_ret = -1;
+        return -1;
     }
+    net_debug_stage = 1;
+
+    /* Resolve hostname */
+    struct addrinfo hints, *resaddr = NULL, *cur;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if (getaddrinfo(host, port, &hints, &resaddr) != 0) {
+        closesocket(sockfd);
+        net_debug_http_ret = -2;
+        return -2;
+    }
+
+    /* Connect */
+    int connected = 0;
+    for (cur = resaddr; cur; cur = cur->ai_next) {
+        if (connect(sockfd, cur->ai_addr, (socklen_t)cur->ai_addrlen) == 0) {
+            connected = 1;
+            break;
+        }
+    }
+    freeaddrinfo(resaddr);
+    if (!connected) {
+        closesocket(sockfd);
+        net_debug_http_ret = -3;
+        return -3;
+    }
+    net_debug_stage = 2;
+
+    /* TLS via native sslc service */
+    sslcContext sslc_ctx;
+    Result r = sslcCreateContext(&sslc_ctx, sockfd, SSLCOPT_DisableVerify, host);
+    if (R_FAILED(r)) {
+        closesocket(sockfd);
+        net_debug_http_ret = -4;
+        return -4;
+    }
+
+    r = sslcStartConnection(&sslc_ctx, NULL, NULL);
+    if (R_FAILED(r)) {
+        sslcDestroyContext(&sslc_ctx);
+        closesocket(sockfd);
+        net_debug_http_ret = -5;
+        return -5;
+    }
+    net_debug_stage = 3;
+
+    /* Build and send HTTP request */
+    char request[2048];
+    snprintf(request, sizeof(request),
+        "GET %s HTTP/1.1\r\n"
+        "Host: %s\r\n"
+        "User-Agent: Mozilla/5.0 (Linux; U; Android 4.4; 3DS) "
+        "AppleWebKit/537.36 BiliApp/1.0\r\n"
+        "Referer: https://www.bilibili.com/client\r\n"
+        "Origin: https://www.bilibili.com\r\n"
+        "Accept: application/json, text/plain, */*\r\n"
+        "Connection: close\r\n"
+        "\r\n",
+        path, host);
+
+    r = sslcWrite(&sslc_ctx, request, strlen(request));
+    if (R_FAILED(r) || (int)r <= 0) {
+        sslcDestroyContext(&sslc_ctx);
+        closesocket(sockfd);
+        net_debug_http_ret = -6;
+        return -6;
+    }
+    net_debug_stage = 4;
+
+    /* Read response */
+    resp->buf = malloc(NET_BUF_SIZE);
+    if (!resp->buf) {
+        sslcDestroyContext(&sslc_ctx);
+        closesocket(sockfd);
+        net_debug_http_ret = -7;
+        return -7;
+    }
+    resp->buf_size = NET_BUF_SIZE;
+    resp->data_len = 0;
+    resp->parse_pos = 0;
+
+    net_debug_stage = 5;
+    while (1) {
+        int remaining = resp->buf_size - resp->data_len;
+        if (remaining <= 1) {
+            resp->buf_size *= 2;
+            char *nb = realloc(resp->buf, resp->buf_size);
+            if (!nb) { net_debug_http_ret = -8; break; }
+            resp->buf = nb;
+            remaining = resp->buf_size - resp->data_len;
+        }
+
+        r = sslcRead(&sslc_ctx, resp->buf + resp->data_len, remaining - 1, false);
+        if (R_FAILED(r)) break;  /* EOF or error: response complete */
+        if ((int)r == 0) break;
+        resp->data_len += (int)r;
+    }
+    resp->buf[resp->data_len] = '\0';
+
+    /* Parse HTTP status line */
+    if (sscanf(resp->buf, "HTTP/%*s %d", &net_debug_http_status) != 1)
+        net_debug_http_status = 0;
+
+    sslcDestroyContext(&sslc_ctx);
+    closesocket(sockfd);
+
+    net_debug_stage = 6;
     net_debug_http_ret = 0;
     return 0;
 }
@@ -249,13 +237,3 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
-
-
-
-
-
-
-
-
-
-
