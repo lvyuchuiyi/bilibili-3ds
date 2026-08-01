@@ -15,6 +15,9 @@
 int main_debug_load_count = -1;  /* count right after bili_popular returns */
 int app_loading = 0;                 /* 1 while network request is running */
 
+/* mbedtls TLS needs more stack than the 32KB libctru default */
+u32 __stacksize__ = 64U * 1024U;
+
 static app_state_t state;
 static volatile int load_requested = 0; /* 0=none, 1=popular, 2=search */
 static volatile int load_state = 0;     /* 0=idle, 1=loading, 2=done */
@@ -38,7 +41,7 @@ static void request_load(int kind) {
     load_requested = kind;
     load_state = 1;
     app_loading = 1;
-    load_thread = threadCreate(load_thread_func, NULL, 32 * 1024, 0x30, 0, false);
+    load_thread = threadCreate(load_thread_func, NULL, 64 * 1024, 0x30, -1, false);
     if (!load_thread) load_state = 0;
 }
 
@@ -119,5 +122,6 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
