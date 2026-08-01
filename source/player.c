@@ -32,6 +32,11 @@ static C3D_Tex video_tex;
 static C2D_Image video_image;
 static bool tex_ready = false;
 
+int player_debug_state = -1;
+int player_debug_init = -1;
+int player_debug_load = -1;
+int player_debug_h264 = 0;
+
 int player_init(void) {
     if (mvd_initialized) return 0;
     memset(&p_info, 0, sizeof(p_info));
@@ -49,6 +54,7 @@ int player_init(void) {
 
     Result r = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264,
                    MVD_OUTPUT_RGB565, MVD_WORKBUF_SIZE, NULL);
+    player_debug_init = (int)r;
     if (R_FAILED(r)) {
         linearFree(workbuf);
         linearFree(output_buf);
@@ -112,6 +118,8 @@ int player_load(const char *url) {
     ret = mp4_extract_h264((const uint8_t*)resp.buf, resp.data_len,
                            &stream, &stream_size);
     http_response_free(&resp);
+    player_debug_load = ret;
+    player_debug_h264 = (int)stream_size;
     if (ret != 0 || !stream || stream_size < 64) {
         if (stream) free(stream);
         p_info.state = PLAYER_ERROR;
@@ -162,6 +170,7 @@ static int find_start_code(const u8 *data, int size, int offset) {
 }
 
 player_state_t player_update(void) {
+    player_debug_state = (int)p_info.state;
     if (p_info.state != PLAYER_PLAYING || !mvd_initialized)
         return p_info.state;
     if (!h264_data || h264_offset >= h264_size - 4) {
@@ -225,4 +234,5 @@ void player_render(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
 

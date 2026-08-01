@@ -265,6 +265,10 @@ extern int ui_debug_romfs;
 extern int ui_debug_file;
 extern int ui_debug_file_size;
 extern char app_debug_playurl[128];
+extern int player_debug_state;
+extern int player_debug_init;
+extern int player_debug_load;
+extern int player_debug_h264;
 extern int bili_debug_wbi_ok;
 extern int bili_debug_json_ret;
 extern int bili_debug_last_ret;
@@ -281,7 +285,8 @@ draw_str(4,224,CLR_TL,dbg);
 char dbgp[32];strncpy(dbgp,app_debug_playurl,30);dbgp[30]=0;draw_str(4,210,CLR_RED,dbgp);
 snprintf(dbg,sizeof(dbg),"ls:%d load:%d pc:%d af:%d",app_load_state,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
 draw_str(4,234,CLR_TL,dbg);
-snprintf(dbg,sizeof(dbg),"rc:%d hd:%d dc:%d hl:%d",bili_debug_root_count,bili_debug_has_data,bili_debug_data_count,bili_debug_has_list);
+snprintf(dbg,sizeof(dbg),"pl:%d i:%d l:%d h264:%d",player_debug_state,player_debug_init,player_debug_load,player_debug_h264);
+draw_str(4,206,CLR_RED,dbg);
 draw_str(4,214,CLR_TL,dbg);
 extern char net_debug_raw[64];
 char dbgr[32];for(int hi=0;hi<12;hi++){snprintf(dbgr+hi*2,3,"%02X",(unsigned char)net_debug_raw[hi]);}dbgr[24]=0;draw_str(4,200,CLR_RED,dbgr);
@@ -404,6 +409,7 @@ default:break;
 }
 return 0;
 }
+
 
 
 
