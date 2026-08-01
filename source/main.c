@@ -3,6 +3,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <3ds.h>
 #include <citro2d.h>
@@ -172,4 +173,5 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 

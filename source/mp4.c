@@ -7,9 +7,6 @@ static uint32_t be32(const uint8_t *p) {
            ((uint32_t)p[2] << 8) | (uint32_t)p[3];
 }
 
-static uint32_t be24(const uint8_t *p) {
-    return ((uint32_t)p[0] << 16) | ((uint32_t)p[1] << 8) | p[2];
-}
 
 /* Find a box with the given 4-char type in the buffer.
  * Returns pointer to box payload start, or NULL. */
@@ -238,3 +235,4 @@ done:
     if (ret != 0 && out.data) free(out.data);
     return ret;
 }
+
