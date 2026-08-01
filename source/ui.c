@@ -109,7 +109,8 @@ static void render_video_list(const char *title, bili_video_list_t *list, int se
 draw_rect(0,0,TOP_W,32,CLR_PRI);
 draw_str(12,8,CLR_W,title);
 draw_str(TOP_W-80,8,CLR_W,"B-Back");
-if(!list||list->count==0){draw_str(60,100,CLR_TL,"No videos found");return;}
+if(!list||list->count==0){
+char dbgc[32];if(list)snprintf(dbgc,sizeof(dbgc),"count=%d",list->count);else strcpy(dbgc,"NULL");draw_str(60,84,CLR_TL,dbgc);draw_str(60,100,CLR_TL,"No videos found");return;}
 int y=36,vis=(TOP_H-36-MARGIN)/LIST_ITEM_H;
 if(vis>MAX_VISIBLE_ITEMS)vis=MAX_VISIBLE_ITEMS;
 for(int i=scroll;i<list->count&&i<scroll+vis;i++){
