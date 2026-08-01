@@ -10,6 +10,7 @@
 #include "network.h"
 #include "bilibili.h"
 #include "ui.h"
+#include "player.h"
 
 #define TOUCH_HOLD_FRAMES 5
 
@@ -41,7 +42,7 @@ static void load_thread_func(void *arg) {
             bili_search(state.search_text, &state.search_list);
         }
     } else if (load_requested == 3) {
-        /* Fetch play URL for debug */
+        /* Fetch play URL and start playback */
         app_load_stage = 2;
         bili_video_t info;
         int r = bili_video_info(state.current_video.aid, &info);
@@ -50,6 +51,9 @@ static void load_thread_func(void *arg) {
             if (pu) {
                 strncpy(app_debug_playurl, pu, sizeof(app_debug_playurl) - 1);
                 app_debug_playurl[sizeof(app_debug_playurl) - 1] = 0;
+                if (player_load(pu) == 0) {
+                    state.current_screen = SCREEN_PLAYING;
+                }
                 free(pu);
             } else {
                 strcpy(app_debug_playurl, "PLAYURL FAIL");
@@ -96,6 +100,7 @@ int main(void) {
     if (ui_init() != 0) return 1;
 
     int net_ok = (net_init() == 0);
+    int player_ok = (player_init() == 0);
 
     memset(&state, 0, sizeof(state));
     state.current_screen = SCREEN_MAIN_MENU;
@@ -161,6 +166,10 @@ int main(void) {
         }
         prev_screen = state.current_screen;
 
+        if (state.current_screen == SCREEN_PLAYING && player_ok) {
+            player_update();
+        }
+
         /* Render every frame; Loading text shown while app_loading */
         ui_render(&state);
     }
@@ -169,9 +178,11 @@ int main(void) {
         threadJoin(load_thread, U64_MAX);
         threadFree(load_thread);
     }
+    player_exit();
     net_exit();
     ui_exit();
     return 0;
 }
+
 
 

@@ -33,5 +33,7 @@ void player_pause(void);
 void player_stop(void);
 player_state_t player_update(void);
 void player_get_info(player_info_t *info);
+void player_render(void);
 
 #endif
+

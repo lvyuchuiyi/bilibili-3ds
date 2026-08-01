@@ -216,6 +216,11 @@ draw_str(TOP_W/2-20,167,CLR_W,"Play");
 
 static void render_playing(player_info_t *p){
 (void)p;
+extern void player_render(void);
+player_render();
+draw_str(TOP_W/2-80,TOP_H-20,CLR_TL,"B-Stop X-Pause");
+}
+(void)p;
 draw_rect(0,0,TOP_W,TOP_H,C2D_Color32(0x00,0x00,0x00,0xFF));
 draw_str(TOP_W/2-60,TOP_H/2-10,CLR_W,"Playing...");
 draw_str(TOP_W/2-80,TOP_H/2+16,CLR_TL,"B-Stop X-Pause");
@@ -397,7 +402,8 @@ if(k&KEY_A){return 2;}
 if(k&KEY_B){s->current_screen=SCREEN_POPULAR;return 1;}
 break;
 case SCREEN_PLAYING:
-if(k&KEY_B){s->current_screen=SCREEN_VIDEO_DETAIL;return 1;}
+if(k&KEY_B){s->current_screen=SCREEN_VIDEO_DETAIL;extern void player_stop(void);player_stop();return 1;}
+if(k&KEY_X){extern void player_pause(void);player_pause();return 1;}
 break;
 default:break;
 }
