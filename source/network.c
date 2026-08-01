@@ -9,23 +9,30 @@
 #include <mbedtls/error.h>
 #include "network.h"
 
+int net_debug_status = 0;  /* 0=OK, negative=init error */
+int net_debug_http_ret = 0; /* last http_get return code */
+
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
 static bool ac_initialized = false;
 
 int net_init(void) {
     if (soc_initialized) return 0;
+    net_debug_status = 0;
 
-    /* acInit must come before socInit on 3DS */
     if (R_SUCCEEDED(acInit())) ac_initialized = true;
 
     soc_mem = (u32*)linearAlloc(0x100000);
-    if (!soc_mem) return -1;
+    if (!soc_mem) {
+        net_debug_status = -1;
+        return -1;
+    }
 
     Result r = socInit(soc_mem, 0x100000);
     if (R_FAILED(r)) {
         linearFree(soc_mem);
         soc_mem = NULL;
+        net_debug_status = -2;
         return -2;
     }
     soc_initialized = true;
@@ -59,7 +66,7 @@ static int parse_url(const char *url, char *host, int host_max,
 
     int host_len = p - host_start;
     if (host_len >= host_max) return -1;
-    strncpy(host, host_start, host_len);
+    memcpy(host, host_start, host_len);
     host[host_len] = '\0';
 
     if (*p == ':') {
@@ -68,7 +75,7 @@ static int parse_url(const char *url, char *host, int host_max,
         while (*p && *p != '/') p++;
         int port_len = p - port_start;
         if (port_len >= port_max) return -1;
-        strncpy(port, port_start, port_len);
+        memcpy(port, port_start, port_len);
         port[port_len] = '\0';
     } else {
         strcpy(port, "443");
@@ -79,7 +86,8 @@ static int parse_url(const char *url, char *host, int host_max,
     } else {
         int path_len = strlen(p);
         if (path_len >= path_max) return -1;
-        strcpy(path, p);
+        memcpy(path, p, path_len);
+        path[path_len] = '\0';
     }
     return 0;
 }
@@ -195,8 +203,10 @@ int http_get(const char *url, http_response_t *resp) {
     if (ret != 0 && resp->buf) {
         free(resp->buf);
         resp->buf = NULL;
+        net_debug_http_ret = ret;
         return ret;
     }
+    net_debug_http_ret = 0;
     return 0;
 }
 
@@ -208,4 +218,3 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
-

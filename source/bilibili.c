@@ -1,10 +1,14 @@
+#include "wbi.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "bilibili.h"
 #include "network.h"
 
-static char *find_body(char *buf) {
+int bili_debug_wbi_ok = 0;
+int bili_debug_last_ret = 0;
+
+static char *find_json_body(char *buf) {
     char *p = strstr(buf, "\r\n\r\n");
     if (!p) return NULL;
     return p + 4;
@@ -15,7 +19,7 @@ static int http_get_json(const char *url, json_value_t **json) {
     int ret = http_get(url, &resp);
     if (ret != 0 || !resp.buf) return -1;
 
-    char *body = find_body(resp.buf);
+    char *body = find_json_body(resp.buf);
     if (!body) { http_response_free(&resp); return -2; }
 
     *json = json_parse(body);
@@ -77,16 +81,30 @@ static int parse_video_list(json_value_t *arr, bili_video_list_t *list) {
     return list->count;
 }
 
+static int wbi_done = 0;
+
 int bili_popular(bili_video_list_t *list) {
     json_value_t *root = NULL;
-    int ret = http_get_json(
-        "https://api.bilibili.com/x/web-interface/popular", &root);
+    bili_debug_last_ret = 0;
+    if (!wbi_done && wbi_init() == 0) {
+        wbi_done = 1;
+        bili_debug_wbi_ok = 1;
+    }
+    char wbi_url[512];
+    const char *api = "https://api.bilibili.com/x/web-interface/popular";
+    const char *final_url = api;
+    if (wbi_done && wbi_sign(api, "ps=20&pn=1", wbi_url, 512) == 0)
+        final_url = wbi_url;
+    int ret = http_get_json(final_url, &root);
+    bili_debug_last_ret = ret;
+
     if (ret != 0) return ret;
 
     json_value_t *data = json_get(root, "data");
     json_value_t *list_arr = data ? json_get(data, "list") : NULL;
 
     ret = list_arr ? parse_video_list(list_arr, list) : -4;
+    bili_debug_last_ret = ret;
     json_free(root);
     return ret;
 }
@@ -120,12 +138,14 @@ int bili_search(const char *keyword, bili_video_list_t *list) {
 
     json_value_t *root = NULL;
     int ret = http_get_json(url, &root);
+    bili_debug_last_ret = ret;
     if (ret != 0) return ret;
 
     json_value_t *data = json_get(root, "data");
     json_value_t *result_arr = data ? json_get(data, "result") : NULL;
 
     ret = result_arr ? parse_video_list(result_arr, list) : -4;
+    bili_debug_last_ret = ret;
     json_free(root);
     return ret;
 }
@@ -202,4 +222,3 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
-
