@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "ui.h"
 #include "player.h"
+static C2D_Font sys_font = NULL;
+static C2D_TextBuf sys_buf = NULL;
 
 /* ===== 8x8 bitmap font: 0-9=0..9, A-Z=10..35, a-z=36..61, sp=62, :=63, -=64, /=65 ===== */
 static const unsigned char font[66][8]={
@@ -63,6 +65,15 @@ while(*s){draw_char(x,y,*s,col);x+=9;s++;}
 void draw_rect(int x,int y,int w,int h,u32 col){
 C2D_DrawRectSolid(x,y,0.5f,w,h,col);
 }
+/* System font supports Chinese; use for video titles */
+void draw_text_cjk(int x,int y,float size,u32 col,const char*s){
+if(!sys_font||!sys_buf||!s||!*s)return;
+C2D_Text text;
+C2D_TextBufClear(sys_buf);
+C2D_TextParse(&text,sys_buf,s);
+C2D_FontSize fsz={size,1.0f,1.0f};
+C2D_DrawText(&text,fsz,x,y,0.5f,col);
+}
 
 #define CLR_BG C2D_Color32(0xF5,0xF5,0xF5,0xFF)
 #define CLR_PRI C2D_Color32(0x00,0x96,0xED,0xFF)
@@ -89,11 +100,17 @@ gfxInitDefault();C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 C2D_Init(4096);C2D_Prepare();gfxSet3D(false);
 t=C2D_CreateScreenTarget(GFX_TOP,GFX_LEFT);
 b=C2D_CreateScreenTarget(GFX_BOTTOM,GFX_LEFT);
+sys_font=C2D_FontLoadSystem(C2D_FontType_System);
+sys_buf=C2D_TextBufCreate(512);
 if(!t||!b)return 1;
 return 0;
 }
 
-void ui_exit(void){C2D_Fini();C3D_Fini();gfxExit();}
+void ui_exit(void){
+if(sys_buf){C2D_TextBufDelete(sys_buf);sys_buf=NULL;}
+if(sys_font){C2D_FontFree(sys_font);sys_font=NULL;}
+C2D_Fini();C3D_Fini();gfxExit();
+}
 
 /* ===== Top screen renderers ===== */
 static void render_main_menu(void){
@@ -121,8 +138,8 @@ draw_rect(MARGIN,iy,22,LIST_ITEM_H,CLR_RED);
 char idx[4];snprintf(idx,4,"%d",i+1);draw_str(MARGIN+4,iy+9,CLR_W,idx);
 char dt[60];int tl=strlen(v->title);
 if(tl>52){strncpy(dt,v->title,52);dt[52]=0;}else strcpy(dt,v->title);
-draw_str(MARGIN+28,iy+2,CLR_T,dt);
-draw_str(MARGIN+28,iy+14,CLR_TL,v->author);
+draw_text_cjk(MARGIN+28,iy+2,12.0f,CLR_T,dt);
+draw_text_cjk(MARGIN+28,iy+14,10.0f,CLR_TL,v->author);
 if(i<list->count-1)draw_rect(MARGIN,iy+LIST_ITEM_H-1,TOP_W-MARGIN*2,1,C2D_Color32(0xE0,0xE0,0xE0,0xFF));
 }
 if(scroll>0)draw_str(TOP_W/2-10,TOP_H-14,CLR_TL,"^");
@@ -143,9 +160,9 @@ draw_str(12,12,CLR_W,"Detail");
 draw_str(TOP_W-80,12,CLR_W,"B-Back");
 int y=50;
 draw_rect(MARGIN,y,TOP_W-MARGIN*2,90,CLR_CARD);
-draw_str(MARGIN+8,y+6,CLR_T,v->title);
+draw_text_cjk(MARGIN+8,y+6,14.0f,CLR_T,v->title);
 char auth[64];snprintf(auth,64,"By: ");strncat(auth,v->author,60);
-draw_str(MARGIN+8,y+32,CLR_TL,auth);
+draw_text_cjk(MARGIN+8,y+32,12.0f,CLR_TL,auth);
 int m=v->duration/60,s=v->duration%60;
 char stats[64];snprintf(stats,64,"%d:%02d - %d plays",m,s,v->play_count);
 draw_str(MARGIN+8,y+54,CLR_TL,stats);
@@ -336,6 +353,7 @@ default:break;
 }
 return 0;
 }
+
 
 
 
