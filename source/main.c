@@ -44,19 +44,25 @@ static void load_thread_func(void *arg) {
     } else if (load_requested == 3) {
         /* Fetch play URL and start playback */
         app_load_stage = 2;
+        strcpy(app_debug_playurl, "STEP:INFO");
         bili_video_t info;
         int r = bili_video_info(state.current_video.aid, &info);
         if (r == 0) {
+            strcpy(app_debug_playurl, "STEP:URL");
             char *pu = bili_get_playurl(info.aid, info.cid);
             if (pu) {
                 strncpy(app_debug_playurl, pu, sizeof(app_debug_playurl) - 1);
                 app_debug_playurl[sizeof(app_debug_playurl) - 1] = 0;
+                strcpy(app_debug_playurl, "STEP:PLAY");
                 if (player_init() == 0 && player_load(pu) == 0) {
                     state.current_screen = SCREEN_PLAYING;
+                    strcpy(app_debug_playurl, "STEP:OK");
+                } else {
+                    strcpy(app_debug_playurl, "STEP:PLAYFAIL");
                 }
                 free(pu);
             } else {
-                strcpy(app_debug_playurl, "PLAYURL FAIL");
+                strcpy(app_debug_playurl, "URL FAIL");
             }
         } else {
             strcpy(app_debug_playurl, "INFO FAIL");
@@ -182,6 +188,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 

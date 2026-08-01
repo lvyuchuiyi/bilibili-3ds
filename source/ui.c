@@ -270,6 +270,8 @@ snprintf(dbg,sizeof(dbg),"st:%d sg:%d",net_debug_http_status,net_debug_stage);
 draw_str(4,220,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"pl:%d i:%d l:%d h264:%d",player_debug_state,player_debug_init,player_debug_load,player_debug_h264);
 draw_str(4,230,CLR_TL,dbg);
+extern char app_debug_playurl[128];
+char dbgp[32];strncpy(dbgp,app_debug_playurl,30);dbgp[30]=0;draw_str(4,200,CLR_RED,dbgp);
 }
 switch(screen){
 case SCREEN_MAIN_MENU:
