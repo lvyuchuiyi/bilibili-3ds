@@ -14,6 +14,7 @@
 
 int main_debug_load_count = -1;  /* count right after bili_popular returns */
 int app_loading = 0;                 /* 1 while network request is running */
+int app_load_state = 0;                      /* 0=idle 1=loading 2=done */
 
 /* mbedtls TLS needs more stack than the 32KB libctru default */
 u32 __stacksize__ = 64U * 1024U;
@@ -41,6 +42,7 @@ static void request_load(int kind) {
     load_requested = kind;
     load_state = 1;
     app_loading = 1;
+    app_load_state = 1;
     load_thread = threadCreate(load_thread_func, NULL, 64 * 1024, 0x30, -1, false);
     if (!load_thread) load_state = 0;
 }
@@ -53,6 +55,7 @@ static void finish_load(void) {
         load_state = 0;
         load_requested = 0;
         app_loading = 0;
+        app_load_state = 0;
     }
 }
 
@@ -79,6 +82,10 @@ int main(void) {
         touchPosition touch;
         hidTouchRead(&touch);
 
+        if ((keys_down & KEY_B) && app_loading) {
+            state.current_screen = SCREEN_MAIN_MENU;
+            state.prev_screen = SCREEN_MAIN_MENU;
+        }
         int handled = ui_handle_keys(&state, keys_down);
         (void)handled;
 
@@ -122,6 +129,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 
