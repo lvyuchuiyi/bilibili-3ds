@@ -18,12 +18,16 @@ int net_debug_stage = 0;               /* 0=start 1=seed 2=connect 3=config 4=ha
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
 static bool ac_initialized = false;
+static bool sslc_initialized = false;
 
 int net_init(void) {
     if (soc_initialized) return 0;
     net_debug_status = 0;
 
     if (R_SUCCEEDED(acInit())) ac_initialized = true;
+
+    /* mbedtls entropy source uses sslcGenerateRandomData (ssl:C) */
+    if (R_SUCCEEDED(sslcInit())) sslc_initialized = true;
 
     soc_mem = (u32*)memalign(0x1000, 0x100000);
     if (!soc_mem) {
@@ -50,6 +54,10 @@ void net_exit(void) {
             soc_mem = NULL;
         }
         soc_initialized = false;
+    }
+    if (sslc_initialized) {
+        sslcExit();
+        sslc_initialized = false;
     }
     if (ac_initialized) {
         acExit();
@@ -233,6 +241,7 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
 
