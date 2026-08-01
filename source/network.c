@@ -11,9 +11,13 @@
 
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
+static bool ac_initialized = false;
 
 int net_init(void) {
     if (soc_initialized) return 0;
+
+    /* acInit must come before socInit on 3DS */
+    if (R_SUCCEEDED(acInit())) ac_initialized = true;
 
     soc_mem = (u32*)linearAlloc(0x100000);
     if (!soc_mem) return -1;
@@ -36,6 +40,10 @@ void net_exit(void) {
             soc_mem = NULL;
         }
         soc_initialized = false;
+    }
+    if (ac_initialized) {
+        acExit();
+        ac_initialized = false;
     }
 }
 
@@ -75,7 +83,6 @@ static int parse_url(const char *url, char *host, int host_max,
     }
     return 0;
 }
-
 
 int http_get(const char *url, http_response_t *resp) {
     if (!url || !resp) return -1;
