@@ -27,7 +27,7 @@ int net_init(void) {
     if (R_SUCCEEDED(acInit())) ac_initialized = true;
 
     /* mbedtls entropy source uses sslcGenerateRandomData (ssl:C) */
-    if (R_SUCCEEDED(sslcInit())) sslc_initialized = true;
+    if (R_SUCCEEDED(sslcInit(0))) sslc_initialized = true;
 
     soc_mem = (u32*)memalign(0x1000, 0x100000);
     if (!soc_mem) {
@@ -241,6 +241,7 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
 
