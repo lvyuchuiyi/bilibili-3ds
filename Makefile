@@ -90,7 +90,7 @@ endif
 
 .PHONY: $(SOURCES) clean all cia release
 
-all: $(BUILD)
+all: $(BUILD) $(ROMFS_FONTFILES)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 cia: $(BUILD)
