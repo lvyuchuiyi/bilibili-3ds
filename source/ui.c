@@ -196,7 +196,7 @@ extern int net_debug_status;
 extern int net_debug_http_ret;
 extern int bili_debug_wbi_ok;
 extern int bili_debug_last_ret;
-snprintf(dbg,sizeof(dbg),"net:%d http:%d wbi:%d ret:%d",net_debug_status,net_debug_http_ret,bili_debug_wbi_ok,bili_debug_last_ret);
+snprintf(dbg,sizeof(dbg),"net:%X http:%d wbi:%d ret:%d",net_debug_status,net_debug_http_ret,bili_debug_wbi_ok,bili_debug_last_ret);
 draw_str(4,224,CLR_TL,dbg);
 }
 switch(screen){

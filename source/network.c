@@ -30,9 +30,9 @@ int net_init(void) {
 
     Result r = socInit(soc_mem, 0x100000);
     if (R_FAILED(r)) {
+        net_debug_status = (int)r;  /* show actual Result code */
         linearFree(soc_mem);
         soc_mem = NULL;
-        net_debug_status = -2;
         return -2;
     }
     soc_initialized = true;
@@ -218,3 +218,4 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
