@@ -132,6 +132,7 @@ int http_get(const char *url, http_response_t *resp) {
 
         mbedtls_ssl_conf_authmode(&ssl_conf, MBEDTLS_SSL_VERIFY_NONE);
         mbedtls_ssl_conf_rng(&ssl_conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+        mbedtls_ssl_conf_read_timeout(&ssl_conf, 10000);
 
         ret = mbedtls_ssl_setup(&ssl_ctx, &ssl_conf);
         if (ret != 0) break;
@@ -223,6 +224,7 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
 
