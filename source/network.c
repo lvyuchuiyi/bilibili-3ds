@@ -13,6 +13,7 @@
 int net_debug_status = 0;  /* 0=OK, negative=init error */
 int net_debug_http_ret = 0; /* last http_get return code */
 int net_debug_http_status = 0; /* HTTP status code */
+int net_debug_stage = 0;               /* 0=start 1=seed 2=connect 3=config 4=handshake 5=send 6=read 7=done */
 
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
@@ -114,21 +115,25 @@ int http_get(const char *url, http_response_t *resp) {
     mbedtls_entropy_init(&entropy);
 
     int ret = -1;
+    net_debug_stage = 0;
 
     do {
         ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func,
                                      &entropy, NULL, 0);
         if (ret != 0) break;
+        net_debug_stage = 1;
 
         ret = mbedtls_net_connect(&net_ctx, host, port,
                                    MBEDTLS_NET_PROTO_TCP);
         if (ret != 0) break;
+        net_debug_stage = 2;
 
         ret = mbedtls_ssl_config_defaults(&ssl_conf,
                     MBEDTLS_SSL_IS_CLIENT,
                     MBEDTLS_SSL_TRANSPORT_STREAM,
                     MBEDTLS_SSL_PRESET_DEFAULT);
         if (ret != 0) break;
+        net_debug_stage = 3;
 
         mbedtls_ssl_conf_authmode(&ssl_conf, MBEDTLS_SSL_VERIFY_NONE);
         mbedtls_ssl_conf_rng(&ssl_conf, mbedtls_ctr_drbg_random, &ctr_drbg);
@@ -146,6 +151,7 @@ int http_get(const char *url, http_response_t *resp) {
 
         ret = mbedtls_ssl_handshake(&ssl_ctx);
         if (ret != 0) break;
+        net_debug_stage = 4;
 
         char request[2048];
         snprintf(request, sizeof(request),
@@ -163,6 +169,7 @@ int http_get(const char *url, http_response_t *resp) {
         ret = mbedtls_ssl_write(&ssl_ctx,
                                  (unsigned char*)request, strlen(request));
         if (ret <= 0) { ret = -1; break; }
+        net_debug_stage = 5;
 
         resp->buf = malloc(NET_BUF_SIZE);
         if (!resp->buf) { ret = -1; break; }
@@ -170,6 +177,7 @@ int http_get(const char *url, http_response_t *resp) {
         resp->data_len = 0;
         resp->parse_pos = 0;
 
+        net_debug_stage = 6;
         while (1) {
             int remaining = resp->buf_size - resp->data_len;
             if (remaining <= 0) {
@@ -225,6 +233,7 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
 
