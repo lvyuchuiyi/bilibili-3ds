@@ -108,7 +108,7 @@ int main(void) {
         hidScanInput();
         u32 keys_down = hidKeysDown();
         touchPosition touch;
-        hidTouchRead(&touch, 0);
+        hidTouchRead(&touch);
 
         /* Button input */
         int handled = ui_handle_keys(&state, keys_down);

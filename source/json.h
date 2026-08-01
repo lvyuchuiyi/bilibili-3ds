@@ -21,13 +21,13 @@ typedef struct json_value {
         double num_val;
         char *str_val;
         struct {
-            struct json_value *values;
+            struct json_value **values;
             int count;
             int capacity;
         } array;
         struct {
             char **keys;
-            struct json_value *values;
+            struct json_value **values;
             int count;
             int capacity;
         } object;
@@ -48,3 +48,4 @@ void json_free(json_value_t *val);
 #endif
 
 #endif
+
