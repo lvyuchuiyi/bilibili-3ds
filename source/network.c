@@ -13,6 +13,7 @@ int net_debug_status = 0;  /* 0=OK, negative=init error */
 int net_debug_http_ret = 0; /* last http_get return code */
 int net_debug_http_status = 0; /* HTTP status code */
 int net_debug_stage = 0;       /* 0=start 1=socket 2=connect 3=ssl 4=send 5=read 6=done */
+char net_debug_raw[64] = "";         /* first bytes of response */
 
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
@@ -221,6 +222,9 @@ int http_get(const char *url, http_response_t *resp) {
     if (sscanf(resp->buf, "HTTP/%*s %d", &net_debug_http_status) != 1)
         net_debug_http_status = 0;
 
+    strncpy(net_debug_raw, resp->buf, sizeof(net_debug_raw) - 1);
+    net_debug_raw[sizeof(net_debug_raw) - 1] = 0;
+
     sslcDestroyContext(&sslc_ctx);
     closesocket(sockfd);
 
@@ -237,3 +241,4 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+

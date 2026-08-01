@@ -11,6 +11,7 @@ int bili_debug_parse_count = -1;
 int bili_debug_after_free = -1;
 char bili_debug_resp[64] = "";
 char bili_debug_raw[64] = "";
+int bili_debug_json_ret = -99;
 int bili_debug_root_count = -1;
 int bili_debug_has_data = -1;
 int bili_debug_data_count = -1;
@@ -55,6 +56,7 @@ static void dechunk_body(char *body) {
 static int http_get_json(const char *url, json_value_t **json) {
     http_response_t resp = {0};
     int ret = http_get(url, &resp);
+    bili_debug_json_ret = ret;
     if (ret != 0 || !resp.buf) return -1;
 
     strncpy(bili_debug_raw, resp.buf, sizeof(bili_debug_raw) - 1);
@@ -273,6 +275,7 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
 
 
 
