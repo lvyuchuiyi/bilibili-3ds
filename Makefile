@@ -21,6 +21,8 @@ SOURCES    := source
 DATA       := data
 INCLUDES   := source
 ROMFS      := romfs
+GRAPHICS   := romfs
+GFXBUILD   := $(ROMFS)
 
 ARCH   := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
@@ -58,6 +60,8 @@ CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES := $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+FONTFILES := $(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.ttf)))
+ROMFS_FONTFILES := $(patsubst %.ttf, $(GFXBUILD)/%.bcfnt, $(FONTFILES))
 
 ifeq ($(strip $(CPPFILES)),)
 export LD := $(CC)
@@ -114,6 +118,11 @@ CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 
 
 #---------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------
+$(GFXBUILD)/%.bcfnt : %.ttf
+	@echo $(notdir $<)
+	@mkbcfnt -o $(GFXBUILD)/$*.bcfnt $<
+#---------------------------------------------------------------------------------
 # Main targets - actual compilation
 #---------------------------------------------------------------------------------
 $(OUTPUT).3dsx: $(OUTPUT).elf
@@ -149,6 +158,7 @@ check: $(OUTPUT).3dsx
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
+
 
 
 

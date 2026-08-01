@@ -102,13 +102,10 @@ gfxInitDefault();C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 C2D_Init(4096);C2D_Prepare();gfxSet3D(false);
 t=C2D_CreateScreenTarget(GFX_TOP,GFX_LEFT);
 b=C2D_CreateScreenTarget(GFX_BOTTOM,GFX_LEFT);
-sys_buf=C2D_TextBufNew(512);
-cfguInit();  /* required for C2D_FontLoadSystem */
-u8 sysreg=0;CFGU_SecureInfoGetRegion(&sysreg);ui_debug_font=0;
-if((CFG_Region)sysreg!=CFG_REGION_CHN)sys_font=C2D_FontLoadSystem(CFG_REGION_CHN);
-if(!sys_font)sys_font=C2D_FontLoadSystem(CFG_REGION_TWN);
-if(!sys_font)sys_font=C2D_FontLoadSystem(CFG_REGION_KOR);
-ui_debug_font=sys_font?1:0;
+  sys_buf=C2D_TextBufNew(512);
+  romfsInit();
+  sys_font=C2D_FontLoad("romfs:/switch_font.bcfnt");
+  ui_debug_font=sys_font?1:0;
 if(!t||!b)return 1;
 return 0;
 }
@@ -116,7 +113,7 @@ return 0;
 void ui_exit(void){
 if(sys_buf){C2D_TextBufDelete(sys_buf);sys_buf=NULL;}
 if(sys_font){C2D_FontFree(sys_font);sys_font=NULL;}
-cfguExit();
+  romfsExit();
 C2D_Fini();C3D_Fini();gfxExit();
 }
 
@@ -362,6 +359,7 @@ default:break;
 }
 return 0;
 }
+
 
 
 
