@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <3ds.h>
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/ssl.h>
@@ -22,7 +23,7 @@ int net_init(void) {
 
     if (R_SUCCEEDED(acInit())) ac_initialized = true;
 
-    soc_mem = (u32*)linearAlloc(0x100000);
+    soc_mem = (u32*)memalign(0x1000, 0x100000);
     if (!soc_mem) {
         net_debug_status = -1;
         return -1;
@@ -31,7 +32,7 @@ int net_init(void) {
     Result r = socInit(soc_mem, 0x100000);
     if (R_FAILED(r)) {
         net_debug_status = (int)r;  /* show actual Result code */
-        linearFree(soc_mem);
+        free(soc_mem);
         soc_mem = NULL;
         return -2;
     }
@@ -43,7 +44,7 @@ void net_exit(void) {
     if (soc_initialized) {
         socExit();
         if (soc_mem) {
-            linearFree(soc_mem);
+            free(soc_mem);
             soc_mem = NULL;
         }
         soc_initialized = false;
@@ -218,4 +219,5 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
