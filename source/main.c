@@ -16,6 +16,7 @@ int main_debug_load_count = -1;
 int app_loading = 0;
 int app_load_state = 0;
 int app_load_timed_out = 0;
+int app_load_stage = 0;  /* 0=idle 1=flag 2=entering bili_popular 3=returned */
 
 /* mbedtls TLS needs more stack than the 32KB libctru default */
 u32 __stacksize__ = 64U * 1024U;
@@ -26,11 +27,16 @@ static void load_popular(void) {
     app_loading = 1;
     app_load_state = 1;
     app_load_timed_out = 0;
+    app_load_stage = 1;
     ui_render(&state);  /* show Loading before blocking request */
+    app_load_stage = 2;
 
+    extern int net_debug_stage;
+    net_debug_stage = -1;  /* mark before http_get */
     int ret = bili_popular(&state.popular_list);
     main_debug_load_count = state.popular_list.count;
     (void)ret;
+    app_load_stage = 3;
 
     app_loading = 0;
     app_load_state = 0;
@@ -108,3 +114,4 @@ int main(void) {
     ui_exit();
     return 0;
 }
+

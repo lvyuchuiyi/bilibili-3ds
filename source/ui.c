@@ -197,6 +197,7 @@ extern int net_debug_status;
 extern int net_debug_http_ret;
 extern int net_debug_http_status;
 extern int net_debug_stage;
+extern int app_load_stage;
 extern int bili_debug_wbi_ok;
 extern int bili_debug_last_ret;
 extern int main_debug_load_count;
@@ -207,7 +208,7 @@ extern int bili_debug_root_count;
 extern int bili_debug_has_data;
 extern int bili_debug_data_count;
 extern int bili_debug_has_list;
-snprintf(dbg,sizeof(dbg),"net:%X st:%d sg:%d wbi:%d ret:%d",net_debug_status,net_debug_http_status,net_debug_stage,bili_debug_wbi_ok,bili_debug_last_ret);
+snprintf(dbg,sizeof(dbg),"al:%d net:%X st:%d sg:%d wbi:%d",app_load_stage,net_debug_status,net_debug_http_status,net_debug_stage,bili_debug_wbi_ok);
 draw_str(4,224,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"ls:%d load:%d pc:%d af:%d",app_load_state,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
 draw_str(4,234,CLR_TL,dbg);
@@ -333,6 +334,7 @@ default:break;
 }
 return 0;
 }
+
 
 
 
