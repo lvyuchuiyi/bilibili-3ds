@@ -264,6 +264,7 @@ extern int ui_debug_font;
 extern int ui_debug_romfs;
 extern int ui_debug_file;
 extern int ui_debug_file_size;
+extern char app_debug_playurl[128];
 extern int bili_debug_wbi_ok;
 extern int bili_debug_json_ret;
 extern int bili_debug_last_ret;
@@ -277,6 +278,7 @@ extern int bili_debug_data_count;
 extern int bili_debug_has_list;
 snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d fl:%d sz:%d",app_load_stage,ui_debug_font,ui_debug_romfs,ui_debug_file,ui_debug_file_size);
 draw_str(4,224,CLR_TL,dbg);
+char dbgp[32];strncpy(dbgp,app_debug_playurl,30);dbgp[30]=0;draw_str(4,210,CLR_RED,dbgp);
 snprintf(dbg,sizeof(dbg),"ls:%d load:%d pc:%d af:%d",app_load_state,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
 draw_str(4,234,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"rc:%d hd:%d dc:%d hl:%d",bili_debug_root_count,bili_debug_has_data,bili_debug_data_count,bili_debug_has_list);
@@ -401,6 +403,8 @@ default:break;
 }
 return 0;
 }
+
+
 
 
 

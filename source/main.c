@@ -17,6 +17,7 @@ int app_loading = 0;
 int app_load_state = 0;
 int app_load_timed_out = 0;
 int app_load_stage = 0;
+char app_debug_playurl[128] = "";
 
 /* mbedtls TLS needs more stack than the 32KB libctru default */
 u32 __stacksize__ = 64U * 1024U;
@@ -37,6 +38,23 @@ static void load_thread_func(void *arg) {
         if (strlen(state.search_text) > 0) {
             app_load_stage = 2;
             bili_search(state.search_text, &state.search_list);
+        }
+    } else if (load_requested == 3) {
+        /* Fetch play URL for debug */
+        app_load_stage = 2;
+        bili_video_t info;
+        int r = bili_video_info(state.current_video.aid, &info);
+        if (r == 0) {
+            char *pu = bili_get_playurl(info.aid, info.cid);
+            if (pu) {
+                strncpy(app_debug_playurl, pu, sizeof(app_debug_playurl) - 1);
+                app_debug_playurl[sizeof(app_debug_playurl) - 1] = 0;
+                free(pu);
+            } else {
+                strcpy(app_debug_playurl, "PLAYURL FAIL");
+            }
+        } else {
+            strcpy(app_debug_playurl, "INFO FAIL");
         }
     }
     app_load_stage = 3;
@@ -109,7 +127,9 @@ int main(void) {
             state.prev_screen = SCREEN_MAIN_MENU;
         }
         int handled = ui_handle_keys(&state, keys_down);
-        (void)handled;
+        if (handled == 2 && state.current_screen == SCREEN_VIDEO_DETAIL && net_ok) {
+            request_load(3);
+        }
 
         if (touch.px != last_touch.px || touch.py != last_touch.py) {
             touch_held = 0;
@@ -152,3 +172,4 @@ int main(void) {
     ui_exit();
     return 0;
 }
+

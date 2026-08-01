@@ -206,6 +206,9 @@ int bili_video_info(long long aid, bili_video_t *video) {
     json_value_t *dur_v = json_get(data, "duration");
     if (dur_v) video->duration = (int)json_number(dur_v);
 
+    json_value_t *cid_v = json_get(data, "cid");
+    if (cid_v) video->cid = (long long)json_number(cid_v);
+
     json_value_t *stat = json_get(data, "stat");
     if (stat) {
         json_value_t *view_v = json_get(stat, "view");
@@ -245,6 +248,7 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
 
 
 

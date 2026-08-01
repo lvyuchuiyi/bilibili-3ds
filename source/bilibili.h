@@ -10,6 +10,7 @@
 
 typedef struct {
     long long aid;
+    long long cid;
     char title[MAX_TITLE_LEN];
     char author[MAX_AUTHOR_LEN];
     char pic_url[MAX_URL_LEN];
@@ -30,3 +31,4 @@ char *bili_get_playurl(long long aid, long long cid);
 void bili_free_playurl(char *url);
 
 #endif
+
