@@ -68,11 +68,36 @@ static void md5_transform(u32 state[4], const u8 block[64]) {
         x[i] = (u32)block[i*4] | ((u32)block[i*4+1]<<8) |
                ((u32)block[i*4+2]<<16) | ((u32)block[i*4+3]<<24);
     }
-    int idx = 0;
-    for (int i=0;i<16;i++) { STEP(F,a,b,c,d,x[idx],K[idx],R[idx]); idx++; STEP(F,d,a,b,c,x[idx],K[idx],R[idx]); idx++; STEP(F,c,d,a,b,x[idx],K[idx],R[idx]); idx++; STEP(F,b,c,d,a,x[idx],K[idx],R[idx]); idx++; }
-    for (int i=0;i<16;i++) { STEP(G,a,b,c,d,x[(5*idx+1)&15],K[idx],R[idx]); idx++; STEP(G,d,a,b,c,x[(5*idx+1)&15],K[idx],R[idx]); idx++; STEP(G,c,d,a,b,x[(5*idx+1)&15],K[idx],R[idx]); idx++; STEP(G,b,c,d,a,x[(5*idx+1)&15],K[idx],R[idx]); idx++; }
-    for (int i=0;i<16;i++) { STEP(H,a,b,c,d,x[(3*idx+5)&15],K[idx],R[idx]); idx++; STEP(H,d,a,b,c,x[(3*idx+5)&15],K[idx],R[idx]); idx++; STEP(H,c,d,a,b,x[(3*idx+5)&15],K[idx],R[idx]); idx++; STEP(H,b,c,d,a,x[(3*idx+5)&15],K[idx],R[idx]); idx++; }
-    for (int i=0;i<16;i++) { STEP(I,a,b,c,d,x[(7*idx)&15],K[idx],R[idx]); idx++; STEP(I,d,a,b,c,x[(7*idx)&15],K[idx],R[idx]); idx++; STEP(I,c,d,a,b,x[(7*idx)&15],K[idx],R[idx]); idx++; STEP(I,b,c,d,a,x[(7*idx)&15],K[idx],R[idx]); idx++; }
+    int step = 0;  /* global step 0..63, indexes K[]/R[] */
+
+    /* Round 1: F, 16 steps, x[0..15] */
+    for (int i=0;i<16;i+=4) {
+        STEP(F,a,b,c,d,x[i],K[step],R[step]); step++;
+        STEP(F,d,a,b,c,x[i+1],K[step],R[step]); step++;
+        STEP(F,c,d,a,b,x[i+2],K[step],R[step]); step++;
+        STEP(F,b,c,d,a,x[i+3],K[step],R[step]); step++;
+    }
+    /* Round 2: G, 16 steps, x[(5s+1)%16], s=0..15 */
+    for (int i=0;i<16;i+=4) {
+        STEP(G,a,b,c,d,x[(5*i+1)&15],K[step],R[step]); step++;
+        STEP(G,d,a,b,c,x[(5*(i+1)+1)&15],K[step],R[step]); step++;
+        STEP(G,c,d,a,b,x[(5*(i+2)+1)&15],K[step],R[step]); step++;
+        STEP(G,b,c,d,a,x[(5*(i+3)+1)&15],K[step],R[step]); step++;
+    }
+    /* Round 3: H, 16 steps, x[(3s+5)%16] */
+    for (int i=0;i<16;i+=4) {
+        STEP(H,a,b,c,d,x[(3*i+5)&15],K[step],R[step]); step++;
+        STEP(H,d,a,b,c,x[(3*(i+1)+5)&15],K[step],R[step]); step++;
+        STEP(H,c,d,a,b,x[(3*(i+2)+5)&15],K[step],R[step]); step++;
+        STEP(H,b,c,d,a,x[(3*(i+3)+5)&15],K[step],R[step]); step++;
+    }
+    /* Round 4: I, 16 steps, x[(7s)%16] */
+    for (int i=0;i<16;i+=4) {
+        STEP(I,a,b,c,d,x[(7*i)&15],K[step],R[step]); step++;
+        STEP(I,d,a,b,c,x[(7*(i+1))&15],K[step],R[step]); step++;
+        STEP(I,c,d,a,b,x[(7*(i+2))&15],K[step],R[step]); step++;
+        STEP(I,b,c,d,a,x[(7*(i+3))&15],K[step],R[step]); step++;
+    }
     state[0]+=a; state[1]+=b; state[2]+=c; state[3]+=d;
 }
 
@@ -229,3 +254,7 @@ int wbi_sign(const char *base, const char *params, char *out, int out_size) {
     snprintf(out, out_size, "%s?%s&w_rid=%s", base, sorted, w_rid);
     return 0;
 }
+
+
+
+

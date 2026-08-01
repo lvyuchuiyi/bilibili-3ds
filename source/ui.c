@@ -70,9 +70,9 @@ void draw_text_cjk(int x,int y,float size,u32 col,const char*s){
 if(!sys_font||!sys_buf||!s||!*s)return;
 C2D_Text text;
 C2D_TextBufClear(sys_buf);
-C2D_TextParse(&text,sys_buf,s);
-C2D_FontSize fsz={size,1.0f,1.0f};
-C2D_DrawText(&text,fsz,x,y,0.5f,col);
+C2D_TextFontParse(&text,sys_font,sys_buf,s);
+float sc=size/30.0f;
+C2D_DrawText(&text,C2D_WithColor,x,y,0.5f,sc,sc,col);
 }
 
 #define CLR_BG C2D_Color32(0xF5,0xF5,0xF5,0xFF)
@@ -100,8 +100,8 @@ gfxInitDefault();C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 C2D_Init(4096);C2D_Prepare();gfxSet3D(false);
 t=C2D_CreateScreenTarget(GFX_TOP,GFX_LEFT);
 b=C2D_CreateScreenTarget(GFX_BOTTOM,GFX_LEFT);
-sys_font=C2D_FontLoadSystem(C2D_FontType_System);
-sys_buf=C2D_TextBufCreate(512);
+sys_font=C2D_FontLoadSystem(CFG_REGION_CHN);
+sys_buf=C2D_TextBufNew(512);
 if(!t||!b)return 1;
 return 0;
 }
