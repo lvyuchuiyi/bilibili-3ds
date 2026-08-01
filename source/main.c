@@ -15,6 +15,8 @@
 int main_debug_load_count = -1;  /* count right after bili_popular returns */
 int app_loading = 0;                 /* 1 while network request is running */
 int app_load_state = 0;                      /* 0=idle 1=loading 2=done */
+static u64 load_start_tick = 0;
+int app_load_timed_out = 0;
 
 /* mbedtls TLS needs more stack than the 32KB libctru default */
 u32 __stacksize__ = 64U * 1024U;
@@ -43,6 +45,8 @@ static void request_load(int kind) {
     load_state = 1;
     app_loading = 1;
     app_load_state = 1;
+    app_load_timed_out = 0;
+    load_start_tick = osGetTime();
     load_thread = threadCreate(load_thread_func, NULL, 64 * 1024, 0x30, -1, false);
     if (!load_thread) load_state = 0;
 }
@@ -76,6 +80,12 @@ int main(void) {
 
     while (aptMainLoop()) {
         finish_load();
+
+        /* Watchdog: if loading takes >15s, stop showing Loading... */
+        if (app_load_state == 1 && osGetTime() - load_start_tick > 15000) {
+            app_load_timed_out = 1;
+            app_loading = 0;
+        }
 
         hidScanInput();
         u32 keys_down = hidKeysDown();
@@ -129,6 +139,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 
