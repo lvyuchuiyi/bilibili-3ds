@@ -5,6 +5,7 @@
 #include "ui.h"
 #include "player.h"
 static C2D_Font sys_font = NULL;  /* CHN font when available */
+int ui_debug_font = -1;                /* 0=default 1=CHN loaded */
 static C2D_TextBuf sys_buf = NULL;
 
 /* ===== 8x8 bitmap font: 0-9=0..9, A-Z=10..35, a-z=36..61, sp=62, :=63, -=64, /=65 ===== */
@@ -102,8 +103,8 @@ C2D_Init(4096);C2D_Prepare();gfxSet3D(false);
 t=C2D_CreateScreenTarget(GFX_TOP,GFX_LEFT);
 b=C2D_CreateScreenTarget(GFX_BOTTOM,GFX_LEFT);
 sys_buf=C2D_TextBufNew(512);
-u8 sysreg=0;CFGU_SecureInfoGetRegion(&sysreg);
-if((CFG_Region)sysreg!=CFG_REGION_CHN)sys_font=C2D_FontLoadSystem(CFG_REGION_CHN);
+u8 sysreg=0;CFGU_SecureInfoGetRegion(&sysreg);ui_debug_font=0;
+if((CFG_Region)sysreg!=CFG_REGION_CHN)sys_font=C2D_FontLoadSystem(CFG_REGION_CHN);ui_debug_font=sys_font?1:0;
 if(!t||!b)return 1;
 return 0;
 }
@@ -218,6 +219,7 @@ extern int net_debug_http_status;
 extern int net_debug_stage;
 extern int net_debug_sslc_ret;
 extern int app_load_stage;
+extern int ui_debug_font;
 extern int bili_debug_wbi_ok;
 extern int bili_debug_json_ret;
 extern int bili_debug_last_ret;
@@ -229,7 +231,7 @@ extern int bili_debug_root_count;
 extern int bili_debug_has_data;
 extern int bili_debug_data_count;
 extern int bili_debug_has_list;
-snprintf(dbg,sizeof(dbg),"al:%d net:%X st:%d sg:%d sr:%X",app_load_stage,net_debug_status,net_debug_http_status,net_debug_stage,net_debug_sslc_ret);
+snprintf(dbg,sizeof(dbg),"al:%d f:%d st:%d sg:%d sr:%X",app_load_stage,ui_debug_font,net_debug_http_status,net_debug_stage,net_debug_sslc_ret);
 draw_str(4,224,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"ls:%d load:%d pc:%d af:%d",app_load_state,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
 draw_str(4,234,CLR_TL,dbg);
@@ -355,6 +357,8 @@ default:break;
 }
 return 0;
 }
+
+
 
 
 
