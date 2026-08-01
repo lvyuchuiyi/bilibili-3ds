@@ -68,8 +68,11 @@ int wbi_init(void) {
     return 0;
 }
 
+/* Parse query string into key/value pairs, filter special chars,
+ * sort alphabetically, then sign query + mixin_key (wiliwili pattern). */
 int wbi_sign(const char *base, const char *params, char *out, int out_size) {
     if (!wbi_initialized) return -1;
+    if (!base || !out || out_size <= 0) return -1;
 
     long ts = time(NULL);
     char query[512];
@@ -78,10 +81,62 @@ int wbi_sign(const char *base, const char *params, char *out, int out_size) {
     else
         snprintf(query, sizeof(query), "wts=%ld", ts);
 
-    /* to_sign = mixin_key + "&" + query */
-    char to_sign[600]; snprintf(to_sign, sizeof(to_sign), "%s&%s", mixin_key, query);
+    /* Split into pairs */
+    char *pairs[32];
+    int pair_count = 0;
+    char tmp[512];
+    strncpy(tmp, query, sizeof(tmp) - 1);
+    tmp[sizeof(tmp) - 1] = 0;
+
+    char *save = NULL;
+    char *tok = strtok_r(tmp, "&", &save);
+    while (tok && pair_count < 32) {
+        pairs[pair_count++] = tok;
+        tok = strtok_r(NULL, "&", &save);
+    }
+
+    /* Sort pairs lexicographically */
+    for (int i = 0; i < pair_count - 1; i++) {
+        for (int j = i + 1; j < pair_count; j++) {
+            if (strcmp(pairs[j], pairs[i]) < 0) {
+                char *t = pairs[i]; pairs[i] = pairs[j]; pairs[j] = t;
+            }
+        }
+    }
+
+    /* Build sorted query, filtering !'()* from values */
+    char sorted[600] = {0};
+    for (int i = 0; i < pair_count; i++) {
+        char *eq = strchr(pairs[i], '=');
+        char key[128] = {0}, val[256] = {0};
+        if (eq) {
+            int klen = eq - pairs[i];
+            if (klen > 0 && klen < 128) strncpy(key, pairs[i], klen);
+            strncpy(val, eq + 1, 255);
+        } else {
+            strncpy(key, pairs[i], 127);
+        }
+        /* Filter !'()* from value */
+        int n = 0;
+        for (int c = 0; val[c] && n < 255; c++) {
+            if (val[c] != '!' && val[c] != '\'' && val[c] != '(' &&
+                val[c] != ')' && val[c] != '*') {
+                val[n++] = val[c];
+            }
+        }
+        val[n] = 0;
+
+        if (i > 0) strncat(sorted, "&", sizeof(sorted) - strlen(sorted) - 1);
+        strncat(sorted, key, sizeof(sorted) - strlen(sorted) - 1);
+        strncat(sorted, "=", sizeof(sorted) - strlen(sorted) - 1);
+        strncat(sorted, val, sizeof(sorted) - strlen(sorted) - 1);
+    }
+
+    /* w_rid = md5(sorted_query + mixin_key)  (no '&') */
+    char to_sign[700];
+    snprintf(to_sign, sizeof(to_sign), "%s%s", sorted, mixin_key);
     char w_rid[33]; hex_md5(to_sign, w_rid);
 
-    snprintf(out, out_size, "%s?%s&w_rid=%s", base, query, w_rid);
+    snprintf(out, out_size, "%s?%s&w_rid=%s", base, sorted, w_rid);
     return 0;
 }

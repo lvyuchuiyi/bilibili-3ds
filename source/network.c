@@ -142,7 +142,9 @@ int http_get(const char *url, http_response_t *resp) {
             "Host: %s\r\n"
             "User-Agent: Mozilla/5.0 (Linux; U; Android 4.4; 3DS) "
             "AppleWebKit/537.36 BiliApp/1.0\r\n"
-            "Referer: https://www.bilibili.com/\r\n"
+            "Referer: https://www.bilibili.com/client\r\n"
+            "Origin: https://www.bilibili.com\r\n"
+            "Accept: application/json, text/plain, */*\r\n"
             "Connection: close\r\n"
             "\r\n",
             path, host);
@@ -206,3 +208,4 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
