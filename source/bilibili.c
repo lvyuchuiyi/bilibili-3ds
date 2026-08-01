@@ -18,7 +18,16 @@ int bili_debug_has_list = -1;
 static char *find_json_body(char *buf) {
     char *p = strstr(buf, "\r\n\r\n");
     if (!p) return NULL;
-    return p + 4;
+    p += 4;
+
+    /* Bilibili uses chunked transfer encoding: body starts with
+     * "<hex-size>\r\n" before the actual JSON. Skip the chunk header. */
+    if (*p && (p[0] >= '0' && p[0] <= '9' || p[0] >= 'a' && p[0] <= 'f' ||
+               p[0] >= 'A' && p[0] <= 'F')) {
+        char *nl = strstr(p, "\r\n");
+        if (nl) return nl + 2;
+    }
+    return p;
 }
 
 static int http_get_json(const char *url, json_value_t **json) {
@@ -238,6 +247,7 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
 
 
 
