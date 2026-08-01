@@ -200,8 +200,10 @@ extern int bili_debug_last_ret;
 extern int main_debug_load_count;
 extern int bili_debug_parse_count;
 extern int bili_debug_after_free;
-snprintf(dbg,sizeof(dbg),"net:%X http:%d wbi:%d ret:%d load:%d pc:%d af:%d",net_debug_status,net_debug_http_ret,bili_debug_wbi_ok,bili_debug_last_ret,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
+snprintf(dbg,sizeof(dbg),"net:%X http:%d wbi:%d ret:%d",net_debug_status,net_debug_http_ret,bili_debug_wbi_ok,bili_debug_last_ret);
 draw_str(4,224,CLR_TL,dbg);
+snprintf(dbg,sizeof(dbg),"load:%d pc:%d af:%d",main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
+draw_str(4,234,CLR_TL,dbg);
 }
 switch(screen){
 case SCREEN_MAIN_MENU:
