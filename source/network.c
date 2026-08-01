@@ -15,6 +15,18 @@ int net_debug_http_ret = 0; /* last http_get return code */
 int net_debug_http_status = 0; /* HTTP status code */
 int net_debug_stage = 0;               /* 0=start 1=seed 2=connect 3=config 4=handshake 5=send 6=read 7=done */
 
+/* Simple LCG entropy: avoids sslcGenerateRandomData hang in Azahar.
+ * Not cryptographically strong, but this app does not verify certs. */
+static int simple_entropy(void *data, unsigned char *output, size_t len) {
+    (void)data;
+    u64 t = svcGetSystemTick();
+    for (size_t i = 0; i < len; i++) {
+        t = t * 6364136223846793005ULL + 1442695040888963407ULL;
+        output[i] = (unsigned char)(t >> 32);
+    }
+    return 0;
+}
+
 static u32 *soc_mem = NULL;
 static bool soc_initialized = false;
 static bool ac_initialized = false;
@@ -114,20 +126,17 @@ int http_get(const char *url, http_response_t *resp) {
     mbedtls_ssl_context ssl_ctx;
     mbedtls_ssl_config ssl_conf;
     mbedtls_ctr_drbg_context ctr_drbg;
-    mbedtls_entropy_context entropy;
 
     mbedtls_net_init(&net_ctx);
     mbedtls_ssl_init(&ssl_ctx);
     mbedtls_ssl_config_init(&ssl_conf);
     mbedtls_ctr_drbg_init(&ctr_drbg);
-    mbedtls_entropy_init(&entropy);
 
     int ret = -1;
     net_debug_stage = 0;
 
     do {
-        ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func,
-                                     &entropy, NULL, 0);
+        ret = mbedtls_ctr_drbg_seed(&ctr_drbg, simple_entropy, NULL, NULL, 0);
         if (ret != 0) break;
         net_debug_stage = 1;
 
@@ -221,7 +230,6 @@ int http_get(const char *url, http_response_t *resp) {
     mbedtls_ssl_config_free(&ssl_conf);
     mbedtls_net_free(&net_ctx);
     mbedtls_ctr_drbg_free(&ctr_drbg);
-    mbedtls_entropy_free(&entropy);
 
     if (ret != 0 && resp->buf) {
         free(resp->buf);
@@ -241,6 +249,7 @@ void http_response_free(http_response_t *resp) {
         resp->buf_size = 0;
     }
 }
+
 
 
 
