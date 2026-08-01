@@ -18,16 +18,37 @@ int bili_debug_has_list = -1;
 static char *find_json_body(char *buf) {
     char *p = strstr(buf, "\r\n\r\n");
     if (!p) return NULL;
-    p += 4;
+    return p + 4;
+}
 
-    /* Bilibili uses chunked transfer encoding: body starts with
-     * "<hex-size>\r\n" before the actual JSON. Skip the chunk header. */
-    if (*p && (p[0] >= '0' && p[0] <= '9' || p[0] >= 'a' && p[0] <= 'f' ||
-               p[0] >= 'A' && p[0] <= 'F')) {
-        char *nl = strstr(p, "\r\n");
-        if (nl) return nl + 2;
+/* De-chunk HTTP chunked transfer encoding in place.
+ * body points at the first chunk-size line. */
+static void dechunk_body(char *body) {
+    char *src = body;
+    char *dst = body;
+
+    while (*src) {
+        char *end;
+        long size = strtol(src, &end, 16);
+        if (end == src) break;   /* not a hex chunk size */
+        if (*end == ';') {       /* skip chunk extensions */
+            end = strchr(end, '\r');
+            if (!end) break;
+        }
+        if (*end != '\r' || end[1] != '\n') break;
+        src = end + 2;
+
+        if (size <= 0) break;    /* last chunk */
+
+        /* copy this chunk's data */
+        memmove(dst, src, size);
+        dst += size;
+        src += size;
+
+        /* skip CRLF after chunk data */
+        if (src[0] == '\r' && src[1] == '\n') src += 2;
     }
-    return p;
+    *dst = '\0';
 }
 
 static int http_get_json(const char *url, json_value_t **json) {
@@ -38,6 +59,7 @@ static int http_get_json(const char *url, json_value_t **json) {
     char *body = find_json_body(resp.buf);
     if (!body) { http_response_free(&resp); return -2; }
 
+    dechunk_body(body);
     strncpy(bili_debug_resp, body, sizeof(bili_debug_resp) - 1);
     bili_debug_resp[sizeof(bili_debug_resp) - 1] = 0;
 
@@ -247,6 +269,8 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
+
 
 
 

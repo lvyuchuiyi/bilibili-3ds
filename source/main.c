@@ -1,5 +1,5 @@
 /*
- * main.c - BiliBili 3DS: UI + network browsing, no player yet
+ * main.c - BiliBili 3DS: UI + async network browsing, no player yet
  */
 
 #include <string.h>
@@ -13,20 +13,43 @@
 #define TOUCH_HOLD_FRAMES 5
 
 int main_debug_load_count = -1;  /* count right after bili_popular returns */
+int app_loading = 0;                 /* 1 while network request is running */
 
 static app_state_t state;
-static int load_requested = 0; /* 0=none, 1=popular, 2=search */
+static volatile int load_requested = 0; /* 0=none, 1=popular, 2=search */
+static volatile int load_state = 0;     /* 0=idle, 1=loading, 2=done */
+static Thread load_thread = NULL;
 
-static void load_popular(void) {
-    int ret = bili_popular(&state.popular_list);
-    main_debug_load_count = state.popular_list.count;
-    (void)ret;
+static void load_thread_func(void *arg) {
+    (void)arg;
+    if (load_requested == 1) {
+        bili_popular(&state.popular_list);
+        main_debug_load_count = state.popular_list.count;
+    } else if (load_requested == 2) {
+        if (strlen(state.search_text) > 0) {
+            bili_search(state.search_text, &state.search_list);
+        }
+    }
+    load_state = 2;
 }
 
-static void load_search(void) {
-    if (strlen(state.search_text) > 0) {
-        int ret = bili_search(state.search_text, &state.search_list);
-        (void)ret;
+static void request_load(int kind) {
+    if (load_state != 0) return;  /* already loading */
+    load_requested = kind;
+    load_state = 1;
+    app_loading = 1;
+    load_thread = threadCreate(load_thread_func, NULL, 32 * 1024, 0x30, 0);
+    if (!load_thread) load_state = 0;
+}
+
+static void finish_load(void) {
+    if (load_state == 2 && load_thread) {
+        threadJoin(load_thread, U64_MAX);
+        threadFree(load_thread);
+        load_thread = NULL;
+        load_state = 0;
+        load_requested = 0;
+        app_loading = 0;
     }
 }
 
@@ -46,13 +69,7 @@ int main(void) {
     int touch_triggered = 0;
 
     while (aptMainLoop()) {
-        if (load_requested == 1) {
-            load_requested = 0;
-            if (net_ok) load_popular();
-        } else if (load_requested == 2) {
-            load_requested = 0;
-            if (net_ok) load_search();
-        }
+        finish_load();
 
         hidScanInput();
         u32 keys_down = hidKeysDown();
@@ -83,18 +100,23 @@ int main(void) {
         static int prev_screen = SCREEN_SPLASH;
         if (state.current_screen == SCREEN_POPULAR &&
             prev_screen != SCREEN_POPULAR) {
-            load_requested = 1;
+            if (net_ok) request_load(1);
         }
         if (state.current_screen == SCREEN_SEARCH_RESULTS &&
             prev_screen == SCREEN_SEARCH_INPUT) {
-            load_requested = 2;
+            if (net_ok) request_load(2);
         }
         prev_screen = state.current_screen;
 
         ui_render(&state);
     }
 
+    if (load_state == 1) {
+        threadJoin(load_thread, U64_MAX);
+        threadFree(load_thread);
+    }
     net_exit();
     ui_exit();
     return 0;
 }
+
