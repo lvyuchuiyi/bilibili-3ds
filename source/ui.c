@@ -79,6 +79,37 @@ else C2D_TextParse(&text,sys_buf,s);
 float sc=size/30.0f;
 C2D_DrawText(&text,C2D_WithColor,x,y,0.5f,sc,sc,col);
 }
+void draw_text_hybrid(int x,int y,float size,u32 col,const char*s){
+if(!s)return;
+int cx=x;
+const unsigned char *p=(const unsigned char*)s;
+while(*p){
+if(*p<0x80){
+char ch=(char)*p;
+draw_char(cx,y,ch,col);
+cx+=9;
+p++;
+}else{
+int len=1;
+if((*p&0xE0)==0xC0)len=2;
+else if((*p&0xF0)==0xE0)len=3;
+else if((*p&0xF8)==0xF0)len=4;
+char buf[5]={0};
+for(int k=0;k<len&&p[k];k++)buf[k]=(char)p[k];
+buf[len]=0;
+if(sys_buf){
+C2D_Text text;
+C2D_TextBufClear(sys_buf);
+if(sys_font)C2D_TextFontParse(&text,sys_font,sys_buf,buf);
+else C2D_TextParse(&text,sys_buf,buf);
+float sc=size/30.0f;
+C2D_DrawText(&text,C2D_WithColor,cx,y,0.5f,sc,sc,col);
+cx+=(int)(text.width*sc)+1;
+}
+p+=len;
+}
+}
+}
 
 #define CLR_BG C2D_Color32(0xF5,0xF5,0xF5,0xFF)
 #define CLR_PRI C2D_Color32(0x00,0x96,0xED,0xFF)
@@ -151,8 +182,8 @@ draw_rect(MARGIN,iy,22,LIST_ITEM_H,CLR_RED);
 char idx[4];snprintf(idx,4,"%d",i+1);draw_str(MARGIN+4,iy+9,CLR_W,idx);
 char dt[60];int tl=strlen(v->title);
 if(tl>52){strncpy(dt,v->title,52);dt[52]=0;}else strcpy(dt,v->title);
-draw_text_cjk(MARGIN+28,iy+2,12.0f,CLR_T,dt);
-draw_text_cjk(MARGIN+28,iy+14,10.0f,CLR_TL,v->author);
+draw_text_hybrid(MARGIN+28,iy+2,12.0f,CLR_T,dt);
+draw_text_hybrid(MARGIN+28,iy+14,10.0f,CLR_TL,v->author);
 if(i<list->count-1)draw_rect(MARGIN,iy+LIST_ITEM_H-1,TOP_W-MARGIN*2,1,C2D_Color32(0xE0,0xE0,0xE0,0xFF));
 }
 if(scroll>0)draw_str(TOP_W/2-10,TOP_H-14,CLR_TL,"^");
@@ -173,9 +204,9 @@ draw_str(12,12,CLR_W,"Detail");
 draw_str(TOP_W-80,12,CLR_W,"B-Back");
 int y=50;
 draw_rect(MARGIN,y,TOP_W-MARGIN*2,90,CLR_CARD);
-draw_text_cjk(MARGIN+8,y+6,14.0f,CLR_T,v->title);
+draw_text_hybrid(MARGIN+8,y+6,14.0f,CLR_T,v->title);
 char auth[64];snprintf(auth,64,"By: ");strncat(auth,v->author,60);
-draw_text_cjk(MARGIN+8,y+32,12.0f,CLR_TL,auth);
+draw_text_hybrid(MARGIN+8,y+32,12.0f,CLR_TL,auth);
 int m=v->duration/60,s=v->duration%60;
 char stats[64];snprintf(stats,64,"%d:%02d - %d plays",m,s,v->play_count);
 draw_str(MARGIN+8,y+54,CLR_TL,stats);
