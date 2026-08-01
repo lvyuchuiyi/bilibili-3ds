@@ -38,7 +38,7 @@ static void request_load(int kind) {
     load_requested = kind;
     load_state = 1;
     app_loading = 1;
-    load_thread = threadCreate(load_thread_func, NULL, 32 * 1024, 0x30, 0);
+    load_thread = threadCreate(load_thread_func, NULL, 32 * 1024, 0x30, 0, false);
     if (!load_thread) load_state = 0;
 }
 
@@ -119,4 +119,5 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
