@@ -8,6 +8,7 @@ static C2D_Font sys_font = NULL;  /* CHN font when available */
 int ui_debug_font = -1;                /* 0=default 1=CHN loaded */
 int ui_debug_romfs = -1;
 int ui_debug_file = -1;
+int ui_debug_file_size = -1;
 static C2D_TextBuf sys_buf = NULL;
 
 /* ===== 8x8 bitmap font: 0-9=0..9, A-Z=10..35, a-z=36..61, sp=62, :=63, -=64, /=65 ===== */
@@ -109,7 +110,7 @@ b=C2D_CreateScreenTarget(GFX_BOTTOM,GFX_LEFT);
   {
     FILE *f=fopen("romfs:/switch_font.bcfnt","rb");
     ui_debug_file=f?1:0;
-    if(f)fclose(f);
+    if(f){fseek(f,0,SEEK_END);ui_debug_file_size=ftell(f);fclose(f);}
   }
   sys_font=C2D_FontLoad("romfs:/switch_font.bcfnt");
   ui_debug_font=sys_font?1:0;
@@ -231,6 +232,7 @@ extern int app_load_stage;
 extern int ui_debug_font;
 extern int ui_debug_romfs;
 extern int ui_debug_file;
+extern int ui_debug_file_size;
 extern int bili_debug_wbi_ok;
 extern int bili_debug_json_ret;
 extern int bili_debug_last_ret;
@@ -242,7 +244,7 @@ extern int bili_debug_root_count;
 extern int bili_debug_has_data;
 extern int bili_debug_data_count;
 extern int bili_debug_has_list;
-snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d fl:%d st:%d",app_load_stage,ui_debug_font,ui_debug_romfs,ui_debug_file,net_debug_http_status);
+snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d fl:%d sz:%d",app_load_stage,ui_debug_font,ui_debug_romfs,ui_debug_file,ui_debug_file_size);
 draw_str(4,224,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"ls:%d load:%d pc:%d af:%d",app_load_state,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
 draw_str(4,234,CLR_TL,dbg);
