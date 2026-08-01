@@ -10,6 +10,7 @@ int bili_debug_last_ret = 0;
 int bili_debug_parse_count = -1;
 int bili_debug_after_free = -1;
 char bili_debug_resp[64] = "";
+char bili_debug_raw[64] = "";
 int bili_debug_root_count = -1;
 int bili_debug_has_data = -1;
 int bili_debug_data_count = -1;
@@ -55,6 +56,9 @@ static int http_get_json(const char *url, json_value_t **json) {
     http_response_t resp = {0};
     int ret = http_get(url, &resp);
     if (ret != 0 || !resp.buf) return -1;
+
+    strncpy(bili_debug_raw, resp.buf, sizeof(bili_debug_raw) - 1);
+    bili_debug_raw[sizeof(bili_debug_raw) - 1] = 0;
 
     char *body = find_json_body(resp.buf);
     if (!body) { http_response_free(&resp); return -2; }
@@ -269,6 +273,7 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
 
 
 
