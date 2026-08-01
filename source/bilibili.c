@@ -10,6 +10,10 @@ int bili_debug_last_ret = 0;
 int bili_debug_parse_count = -1;
 int bili_debug_after_free = -1;
 char bili_debug_resp[64] = "";
+int bili_debug_root_count = -1;
+int bili_debug_has_data = -1;
+int bili_debug_data_count = -1;
+int bili_debug_has_list = -1;
 
 static char *find_json_body(char *buf) {
     char *p = strstr(buf, "\r\n\r\n");
@@ -108,6 +112,10 @@ int bili_popular(bili_video_list_t *list) {
 
     json_value_t *data = json_get(root, "data");
     json_value_t *list_arr = data ? json_get(data, "list") : NULL;
+    bili_debug_root_count = root->object.count;
+    bili_debug_has_data = data ? 1 : 0;
+    bili_debug_data_count = data ? data->object.count : -1;
+    bili_debug_has_list = list_arr ? 1 : 0;
 
     ret = list_arr ? parse_video_list(list_arr, list) : -4;
     bili_debug_last_ret = ret;
@@ -230,5 +238,6 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
 
 
