@@ -251,45 +251,25 @@ draw_str(g2*5+key_w*5+8,cy+4,CLR_W,"Go");
 static void render_bottom_default(app_screen_t screen){
 draw_rect(0,0,BOT_W,BOT_H,C2D_Color32(0xE8,0xE8,0xE8,0xFF));
 draw_rect(0,0,BOT_W,24,CLR_CARD);
-/* debug line */
+/* debug lines */
 {
 char dbg[64];
-extern int net_debug_status;
-extern int net_debug_http_ret;
-extern int net_debug_http_status;
-extern int net_debug_stage;
-extern int net_debug_sslc_ret;
 extern int app_load_stage;
 extern int ui_debug_font;
 extern int ui_debug_romfs;
-extern int ui_debug_file;
-extern int ui_debug_file_size;
-extern char app_debug_playurl[128];
+extern int net_debug_http_status;
+extern int net_debug_stage;
 extern int player_debug_state;
 extern int player_debug_init;
 extern int player_debug_load;
 extern int player_debug_h264;
-extern int bili_debug_wbi_ok;
-extern int bili_debug_json_ret;
-extern int bili_debug_last_ret;
 extern int main_debug_load_count;
-extern int app_load_state;
-extern int bili_debug_parse_count;
-extern int bili_debug_after_free;
-extern int bili_debug_root_count;
-extern int bili_debug_has_data;
-extern int bili_debug_data_count;
-extern int bili_debug_has_list;
-snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d fl:%d sz:%d",app_load_stage,ui_debug_font,ui_debug_romfs,ui_debug_file,ui_debug_file_size);
-draw_str(4,224,CLR_TL,dbg);
-char dbgp[32];strncpy(dbgp,app_debug_playurl,30);dbgp[30]=0;draw_str(4,210,CLR_RED,dbgp);
-snprintf(dbg,sizeof(dbg),"ls:%d load:%d pc:%d af:%d",app_load_state,main_debug_load_count,bili_debug_parse_count,bili_debug_after_free);
-draw_str(4,234,CLR_TL,dbg);
+snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d load:%d",app_load_stage,ui_debug_font,ui_debug_romfs,main_debug_load_count);
+draw_str(4,210,CLR_TL,dbg);
+snprintf(dbg,sizeof(dbg),"st:%d sg:%d",net_debug_http_status,net_debug_stage);
+draw_str(4,220,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"pl:%d i:%d l:%d h264:%d",player_debug_state,player_debug_init,player_debug_load,player_debug_h264);
-draw_str(4,206,CLR_RED,dbg);
-draw_str(4,214,CLR_TL,dbg);
-extern char net_debug_raw[64];
-char dbgr[32];for(int hi=0;hi<12;hi++){snprintf(dbgr+hi*2,3,"%02X",(unsigned char)net_debug_raw[hi]);}dbgr[24]=0;draw_str(4,200,CLR_RED,dbgr);
+draw_str(4,230,CLR_TL,dbg);
 }
 switch(screen){
 case SCREEN_MAIN_MENU:
