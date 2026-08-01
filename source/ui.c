@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "ui.h"
 #include "player.h"
+static C2D_Font sys_font = NULL;  /* CHN font when available */
 static C2D_TextBuf sys_buf = NULL;
 
 /* ===== 8x8 bitmap font: 0-9=0..9, A-Z=10..35, a-z=36..61, sp=62, :=63, -=64, /=65 ===== */
@@ -69,7 +70,8 @@ void draw_text_cjk(int x,int y,float size,u32 col,const char*s){
 if(!sys_buf||!s||!*s)return;
 C2D_Text text;
 C2D_TextBufClear(sys_buf);
-C2D_TextParse(&text,sys_buf,s);
+if(sys_font)C2D_TextFontParse(&text,sys_font,sys_buf,s);
+else C2D_TextParse(&text,sys_buf,s);
 float sc=size/30.0f;
 C2D_DrawText(&text,C2D_WithColor,x,y,0.5f,sc,sc,col);
 }
@@ -100,12 +102,15 @@ C2D_Init(4096);C2D_Prepare();gfxSet3D(false);
 t=C2D_CreateScreenTarget(GFX_TOP,GFX_LEFT);
 b=C2D_CreateScreenTarget(GFX_BOTTOM,GFX_LEFT);
 sys_buf=C2D_TextBufNew(512);
+u8 sysreg=0;CFGU_SecureInfoGetRegion(&sysreg);
+if((CFG_Region)sysreg!=CFG_REGION_CHN)sys_font=C2D_FontLoadSystem(CFG_REGION_CHN);
 if(!t||!b)return 1;
 return 0;
 }
 
 void ui_exit(void){
 if(sys_buf){C2D_TextBufDelete(sys_buf);sys_buf=NULL;}
+if(sys_font){C2D_FontFree(sys_font);sys_font=NULL;}
 C2D_Fini();C3D_Fini();gfxExit();
 }
 
