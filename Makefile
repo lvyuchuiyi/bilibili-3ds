@@ -54,7 +54,10 @@ export VPATH := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 
 export DEPSDIR := $(CURDIR)/$(BUILD)
 
-export _3DSXDEPS :=
+export _3DSXDEPS := $(if $(NO_SMDH),,$(OUTPUT).smdh)
+ifeq ($(strip $(NO_SMDH)),)
+export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
+endif
 export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 
 CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
@@ -159,6 +162,7 @@ check: $(OUTPUT).3dsx
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
+
 
 
 
