@@ -78,8 +78,10 @@ AccessControlInfo:
     - http:C
     - ac:u
     - mvd:U
+    - mvd:STD
 
 SystemControlInfo:
   SaveDataSize: 0KB
   RemasterVersion: 0
   StackSize: 0x100000
+
