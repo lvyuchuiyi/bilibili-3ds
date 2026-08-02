@@ -268,25 +268,23 @@ draw_rect(0,0,BOT_W,24,CLR_CARD);
 {
 char dbg[64];
 extern int app_load_stage;
-extern int ui_debug_font;
-extern int ui_debug_romfs;
+extern int main_debug_load_count;
 extern int net_debug_http_status;
 extern int net_debug_stage;
-extern int net_debug_data_len;
 extern int player_debug_state;
 extern int player_debug_init;
-extern int player_debug_load;
-extern int player_debug_h264;
 extern int player_debug_mvd_service;
-extern int main_debug_load_count;
-snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d load:%d",app_load_stage,ui_debug_font,ui_debug_romfs,main_debug_load_count);
-draw_str(4,210,CLR_TL,dbg);
-snprintf(dbg,sizeof(dbg),"st:%d sg:%d dl:%d",net_debug_http_status,net_debug_stage,net_debug_data_len);
-draw_str(4,220,CLR_TL,dbg);
+extern int player_debug_load;
+extern int player_debug_model;
+extern int player_debug_mem1;
+extern int player_debug_mem2;
+extern int player_debug_h264;
 snprintf(dbg,sizeof(dbg),"pl:%d i:%d sv:%d l:%d",player_debug_state,player_debug_init,player_debug_mvd_service,player_debug_load);
-draw_str(4,230,CLR_TL,dbg);
-extern char app_debug_playurl[128];
-char dbgp[32];strncpy(dbgp,app_debug_playurl,30);dbgp[30]=0;draw_str(4,200,CLR_RED,dbgp);
+draw_str(4,206,CLR_TL,dbg);
+snprintf(dbg,sizeof(dbg),"mdl:%d m1:%d m2:%d h264:%d",player_debug_model,player_debug_mem1,player_debug_mem2,player_debug_h264);
+draw_str(4,216,CLR_TL,dbg);
+snprintf(dbg,sizeof(dbg),"al:%d load:%d st:%d sg:%d",app_load_stage,main_debug_load_count,net_debug_http_status,net_debug_stage);
+draw_str(4,226,CLR_TL,dbg);
 }
 switch(screen){
 case SCREEN_MAIN_MENU:

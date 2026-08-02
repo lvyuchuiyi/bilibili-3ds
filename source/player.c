@@ -36,7 +36,10 @@ int player_debug_state = -1;
 int player_debug_init = -1;
 int player_debug_load = -1;
 int player_debug_h264 = 0;
-int player_debug_mvd_service = -1;  /* srvGetServiceHandle result */
+int player_debug_mvd_service = -1;  /* -11=cfgu -12=model -13=svc 0=ok */
+int player_debug_model = -1;
+int player_debug_mem1 = -1;
+int player_debug_mem2 = -1;
 
 int player_init(void) {
     if (mvd_initialized) return 0;
@@ -49,9 +52,14 @@ int player_init(void) {
     /* MVD hardware only exists on New 3DS */
     {
         u8 model = 0;
+    player_debug_mvd_service = -11;  /* entering cfgu */
         cfguInit();
+    player_debug_mvd_service = -12;  /* cfgu done */
         CFGU_GetSystemModel(&model);
+    player_debug_model = (int)model;
+    player_debug_mvd_service = -13;  /* model got */
         cfguExit();
+    player_debug_mvd_service = -14;  /* cfgu exit */
         if (model != CFG_MODEL_N3DS && model != CFG_MODEL_N3DSXL &&
             model != CFG_MODEL_N2DSXL) {
             player_debug_mvd_service = -10;  /* Old 3DS: no MVD */
@@ -65,7 +73,9 @@ int player_init(void) {
 
     /* Small NAL copy buffer; mvdstdInit allocates its own work buffer */
     workbuf = (u8*)linearMemAlign(NAL_BUF_SIZE, 0x40);
+    player_debug_mem1 = workbuf ? 0 : -1;
     output_buf = (u8*)linearAlloc(PLAY_WIDTH * PLAY_HEIGHT * 2);
+    player_debug_mem2 = output_buf ? 0 : -1;
     if (!workbuf || !output_buf) {
         if (workbuf) linearFree(workbuf);
         if (output_buf) linearFree(output_buf);
@@ -260,6 +270,7 @@ void player_render(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
 
 
 
