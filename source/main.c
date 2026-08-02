@@ -190,15 +190,20 @@ int main(void) {
         ui_render(&state);
     }
 
-    if (load_state == 1) {
-        threadJoin(load_thread, U64_MAX);
-        threadFree(load_thread);
+    /* Don't block forever on a stuck MVD init thread */
+    if (load_state == 1 && load_thread) {
+        Result r = threadJoin(load_thread, 500000000ULL);  /* 500ms timeout */
+        if (R_SUCCEEDED(r)) {
+            threadFree(load_thread);
+        }
+        /* If join timed out, leak the thread rather than freeze the app */
     }
     player_exit();
     net_exit();
     ui_exit();
     return 0;
 }
+
 
 
 
