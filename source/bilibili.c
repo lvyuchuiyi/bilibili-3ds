@@ -223,7 +223,7 @@ char *bili_get_playurl(long long aid, long long cid) {
     char url[512];
     snprintf(url, sizeof(url),
         "https://api.bilibili.com/x/player/playurl"
-        "?avid=%lld&cid=%lld&qn=16&fnval=0&fnver=0&otype=json", aid, cid);
+        "?avid=%lld&cid=%lld&qn=6&fnval=0&fnver=0&otype=json", aid, cid);
 
     json_value_t *root = NULL;
     int ret = http_get_json(url, &root);
@@ -248,6 +248,7 @@ char *bili_get_playurl(long long aid, long long cid) {
 void bili_free_playurl(char *url) {
     free(url);
 }
+
 
 
 

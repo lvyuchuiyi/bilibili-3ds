@@ -216,12 +216,17 @@ player_state_t player_update(void) {
 
     int nal_size = end - nal_start;
     if (nal_size <= 0) { h264_offset = end; return p_info.state; }
+    /* Only process video NAL types (slice, IDR, SPS, PPS). */
+    u32 nal_type = h264_data[nal_start] & 0x1F;
+    if (nal_type != 1 && nal_type != 5 && nal_type != 7 && nal_type != 8) {
+        h264_offset = end;
+        return p_info.state;
+    }
     if (nal_size > NAL_BUF_SIZE - 4096) nal_size = NAL_BUF_SIZE - 4096;
 
     memcpy(workbuf, h264_data + nal_start, nal_size);
     GSPGPU_FlushDataCache(workbuf, nal_size);
 
-    u32 nal_type = h264_data[nal_start] & 0x1F;
     u32 flag = (nal_type == 5 || nal_type == 7 || nal_type == 8) ? 1 : 0;
 
     MVDSTD_ProcessNALUnitOut out;
