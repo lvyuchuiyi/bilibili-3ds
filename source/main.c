@@ -186,8 +186,14 @@ int main(void) {
             player_update();
         }
 
+        /* Check Home key / APT suspend BEFORE rendering to avoid blocking */
+        if (!aptMainLoop()) break;
+
         /* Render every frame; Loading text shown while app_loading */
         ui_render(&state);
+
+        /* Extra check after render in case frame blocked */
+        if (!aptMainLoop()) break;
     }
 
     /* Don't block forever on a stuck MVD init thread */
@@ -201,8 +207,12 @@ int main(void) {
     player_exit();
     net_exit();
     ui_exit();
+
+    /* Force exit: some threads may be stuck in system calls */
+    svcExitProcess();
     return 0;
 }
+
 
 
 
