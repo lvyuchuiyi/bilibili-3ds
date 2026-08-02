@@ -31,6 +31,7 @@ static int decoded_frames = 0;
 static C3D_Tex video_tex;
 static C2D_Image video_image;
 static bool tex_ready = false;
+static bool frame_dirty = false;
 
 int player_debug_state = -1;
 int player_debug_init = -1;
@@ -236,6 +237,7 @@ player_state_t player_update(void) {
             mvdstdRenderVideoFrame(NULL, false);
             decoded_frames++;
             p_info.current_frame = decoded_frames;
+            frame_dirty = true;
         }
     }
 
@@ -267,6 +269,8 @@ void player_render(void) {
         }
     }
 
+    if (!frame_dirty) return;  /* no new frame */
+    frame_dirty = false;
     memcpy(video_tex.data, output_buf, PLAY_WIDTH * PLAY_HEIGHT * 2);
     C3D_TexFlush(&video_tex);
     C2D_DrawImageAt(video_image, 0, 0, 0.5f, NULL, 1.0f, 1.0f);
@@ -275,6 +279,7 @@ void player_render(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
 
 
 
