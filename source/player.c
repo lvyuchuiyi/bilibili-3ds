@@ -13,7 +13,7 @@
 #include "network.h"
 #include "mp4.h"
 
-#define MVD_WORKBUF_SIZE MVD_DEFAULT_WORKBUF_SIZE
+#define NAL_BUF_SIZE (512 * 1024)
 #define PLAY_WIDTH 400
 #define PLAY_HEIGHT 240
 
@@ -45,7 +45,14 @@ int player_init(void) {
     p_info.width = PLAY_WIDTH;
     p_info.height = PLAY_HEIGHT;
 
-    workbuf = (u8*)linearAlloc(MVD_WORKBUF_SIZE);
+    /* Check MVD service first, before allocating large buffers */
+    Handle mvd_handle = 0;
+    player_debug_mvd_service = (int)srvGetServiceHandle(&mvd_handle, "mvd:STD");
+    if (mvd_handle) svcCloseHandle(mvd_handle);
+    if (player_debug_mvd_service != 0) return -2;
+
+    /* Small NAL copy buffer; mvdstdInit allocates its own work buffer */
+    workbuf = (u8*)linearMemAlign(NAL_BUF_SIZE, 0x40);
     output_buf = (u8*)linearAlloc(PLAY_WIDTH * PLAY_HEIGHT * 2);
     if (!workbuf || !output_buf) {
         if (workbuf) linearFree(workbuf);
@@ -53,13 +60,8 @@ int player_init(void) {
         return -2;
     }
 
-    /* Check if mvd:STD service is accessible */
-    Handle mvd_handle = 0;
-    player_debug_mvd_service = (int)srvGetServiceHandle(&mvd_handle, "mvd:STD");
-    if (mvd_handle) svcCloseHandle(mvd_handle);
-
     Result r = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264,
-                   MVD_OUTPUT_RGB565, MVD_WORKBUF_SIZE, NULL);
+                   MVD_OUTPUT_RGB565, MVD_DEFAULT_WORKBUF_SIZE, NULL);
     player_debug_init = (int)r;
     if (R_FAILED(r)) {
         linearFree(workbuf);
@@ -192,7 +194,7 @@ player_state_t player_update(void) {
 
     int nal_size = end - nal_start;
     if (nal_size <= 0) { h264_offset = end; return p_info.state; }
-    if (nal_size > MVD_WORKBUF_SIZE - 4096) nal_size = MVD_WORKBUF_SIZE - 4096;
+    if (nal_size > NAL_BUF_SIZE - 4096) nal_size = NAL_BUF_SIZE - 4096;
 
     memcpy(workbuf, h264_data + nal_start, nal_size);
     GSPGPU_FlushDataCache(workbuf, nal_size);
@@ -246,6 +248,7 @@ void player_render(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
 
 
 
