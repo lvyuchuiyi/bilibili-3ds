@@ -29,9 +29,9 @@ jobs:
         ELF=$(find . -name "*.elf" | head -1)
         SMDH=$(find . -name "*.smdh" | head -1)
         if [ -n "$SMDH" ]; then
-          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -icon "$SMDH" -banner "$SMDH" -rsf resources/bilibili3ds.rsf 2>&1
         else
-          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -desc app:4 -rsf resources/bilibili3ds.rsf 2>&1
+          makerom -f cia -o bilibili3ds.cia -elf "$ELF" -rsf resources/bilibili3ds.rsf 2>&1
         fi
         ls -la *.cia
     - name: Upload
