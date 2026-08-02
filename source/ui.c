@@ -218,6 +218,12 @@ static void render_playing(player_info_t *p){
 (void)p;
 extern void player_render(void);
 extern char app_debug_playurl[128];
+if(strncmp(app_debug_playurl,"INITFAIL:-4",11)==0){
+draw_rect(0,0,TOP_W,TOP_H,C2D_Color32(0x00,0x00,0x00,0xFF));
+draw_str(TOP_W/2-130,TOP_H/2-10,CLR_RED,"Old 3DS: no video support");
+draw_str(TOP_W/2-80,TOP_H/2+16,CLR_TL,"B - Back");
+return;
+}
 if(strncmp(app_debug_playurl,"MVD:HANG",8)==0){
 draw_rect(0,0,TOP_W,TOP_H,C2D_Color32(0x00,0x00,0x00,0xFF));
 draw_str(TOP_W/2-130,TOP_H/2-10,CLR_RED,"MVD not supported in emulator");
@@ -400,6 +406,7 @@ default:break;
 }
 return 0;
 }
+
 
 
 

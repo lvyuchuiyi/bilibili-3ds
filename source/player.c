@@ -46,6 +46,18 @@ int player_init(void) {
     p_info.height = PLAY_HEIGHT;
 
     /* Check MVD service first, before allocating large buffers */
+    /* MVD hardware only exists on New 3DS */
+    {
+        u8 model = 0;
+        cfguInit();
+        CFGU_GetSystemModel(&model);
+        cfguExit();
+        if (model != CFG_MODEL_N3DS && model != CFG_MODEL_N3DSXL &&
+            model != CFG_MODEL_N2DSXL) {
+            player_debug_mvd_service = -10;  /* Old 3DS: no MVD */
+            return -4;
+        }
+    }
     Handle mvd_handle = 0;
     player_debug_mvd_service = (int)srvGetServiceHandle(&mvd_handle, "mvd:STD");
     if (mvd_handle) svcCloseHandle(mvd_handle);
