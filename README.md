@@ -1,71 +1,57 @@
-# BiliBili for 3DS
+﻿# BiliBili for 3DS
 
-在 Nintendo 3DS 上浏览和观看 BiliBili 视频的第三方客户端。
+Nintendo 3DS 上的 Bilibili 视频客户端。
 
 ## 功能
 
-- 浏览 BiliBili 推荐视频
-- 搜索视频（支持中文关键词）
-- 查看视频详情（标题、UP主、播放量）
-- 硬件加速视频播放（3DS MVD H.264 解码器）
-- 触摸屏 + 实体按键操作
+- ✅ 热门视频浏览
+- ✅ 视频搜索
+- ✅ 视频详情（标题、UP主、时长、播放量）
+- ✅ 中文标题显示（内置 Droid Sans Fallback 字体）
+- ✅ 低分辨率视频播放（360P MP4 + MVD 硬件解码，真机可用）
+- ❌ 弹幕、评论、投币、直播（不在范围内）
 
-## 硬件要求
+## 安装
 
-- Nintendo 3DS / 3DS XL / 2DS / New 3DS / New 3DS XL / New 2DS XL
-- 系统版本 11.0+（支持 Homebrew Launcher）
-- SD 卡、Wi-Fi 连接
+### 方法一：FBI 扫码安装
 
-## 编译方法
+1. 打开 [Releases](https://github.com/lvyuchuiyi/bilibili-3ds/releases)
+2. 下载最新 `bilibili3ds.cia`
+3. 用 FBI 的 Remote Install 扫描二维码
 
-### 方法一：双击 setup.bat（推荐）
+### 方法二：Homebrew Launcher（3dsx）
 
-1. 双击 setup.bat
-2. 安装器自动下载 devkitPro，按提示安装（勾选 3DS Development）
-3. 安装完成后自动编译
-4. 编译好的文件在 outputs/ 目录
-
-### 方法二：GitHub Actions（无需本地安装）
-
-1. Fork 本仓库
-2. 进入 Actions 页面
-3. 手动触发 Build BiliBili 3DS 工作流
-4. 编译完成后下载 bilibili3ds-build.zip
-
-## 安装到 3DS
-
-### CIA 安装（推荐）
-- 将 bilibili3ds.cia 复制到 SD 卡
-- 运行 FBI - SD - Install and Delete CIA
-- 应用出现在主屏幕
-
-### 3DSX 安装
-- 将 bilibili3ds.3dsx 和 bilibili3ds.smdh 复制到 /3ds/bilibili3ds/
-- 打开 Homebrew Launcher 运行
+1. 下载 `bilibili3ds.3dsx`
+2. 复制到 SD 卡的 `/3ds/bilibili3ds/`
+3. 打开 Homebrew Launcher 运行
 
 ## 操作说明
 
 | 按键 | 功能 |
 |------|------|
-| 十字键上下 | 列表滚动 |
-| A | 确认 / 选择 / 播放 |
-| B | 返回上一级 |
-| X | 播放 / 暂停 |
-| 触摸屏 | 点击选择 / 键盘输入 |
+| ↑↓ | 列表滚动 |
+| A | 确认/选择/播放 |
+| B | 返回 |
+| X | 暂停/继续 |
 
 ## 技术栈
 
-- UI: citro3d（GPU 加速 2D 渲染）
-- 网络: SOC service + mbedTLS（HTTPS）
-- API: BiliBili 非官方 API
-- 视频解码: 3DS MVD 硬件 H.264 解码器
+- **UI**: citro2d + citro3d（GPU 加速 2D 渲染）
+- **网络**: 3DS 原生 http:C 服务（自动处理 HTTPS/chunked/重定向）
+- **API**: Bilibili Web API + WBI 签名（参数排序 + MD5）
+- **字体**: Droid Sans Fallback（SIL OFL 许可，内置 romfs）
+- **视频解码**: MVD 硬件 H.264 解码器
+- **MP4 解析**: 内置最小解封装器（AVCC → Annex B）
 
-## 注意事项
+## 构建
 
-- 本项目为第三方客户端，与 BiliBili 官方无关
-- 播放使用 MVD 硬件解码，240p/360p H.264 最适配
-- 首次加载推荐视频需要数秒（取决于网络）
+```bash
+make -j$(nproc)
+```
 
-## 许可
+需要 devkitPro + devkitARM。
 
-MIT License
+## 注意
+
+- 视频播放依赖 3DS MVD 硬件，模拟器（Azahar/Citra）不支持
+- 网络功能在 Azahar 模拟器中可以正常工作
