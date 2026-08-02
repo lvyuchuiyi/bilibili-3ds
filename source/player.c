@@ -36,6 +36,7 @@ int player_debug_state = -1;
 int player_debug_init = -1;
 int player_debug_load = -1;
 int player_debug_h264 = 0;
+int player_debug_mvd_service = -1;  /* srvGetServiceHandle result */
 
 int player_init(void) {
     if (mvd_initialized) return 0;
@@ -51,6 +52,11 @@ int player_init(void) {
         if (output_buf) linearFree(output_buf);
         return -2;
     }
+
+    /* Check if mvd:STD service is accessible */
+    Handle mvd_handle = 0;
+    player_debug_mvd_service = (int)srvGetServiceHandle(&mvd_handle, "mvd:STD");
+    if (mvd_handle) svcCloseHandle(mvd_handle);
 
     Result r = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264,
                    MVD_OUTPUT_RGB565, MVD_WORKBUF_SIZE, NULL);
@@ -240,6 +246,7 @@ void player_render(void) {
 void player_get_info(player_info_t *info) {
     if (info) memcpy(info, &p_info, sizeof(player_info_t));
 }
+
 
 
 

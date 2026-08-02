@@ -271,12 +271,13 @@ extern int player_debug_state;
 extern int player_debug_init;
 extern int player_debug_load;
 extern int player_debug_h264;
+extern int player_debug_mvd_service;
 extern int main_debug_load_count;
 snprintf(dbg,sizeof(dbg),"al:%d f:%d r:%d load:%d",app_load_stage,ui_debug_font,ui_debug_romfs,main_debug_load_count);
 draw_str(4,210,CLR_TL,dbg);
 snprintf(dbg,sizeof(dbg),"st:%d sg:%d dl:%d",net_debug_http_status,net_debug_stage,net_debug_data_len);
 draw_str(4,220,CLR_TL,dbg);
-snprintf(dbg,sizeof(dbg),"pl:%d i:%d l:%d h264:%d",player_debug_state,player_debug_init,player_debug_load,player_debug_h264);
+snprintf(dbg,sizeof(dbg),"pl:%d i:%d sv:%d l:%d",player_debug_state,player_debug_init,player_debug_mvd_service,player_debug_load);
 draw_str(4,230,CLR_TL,dbg);
 extern char app_debug_playurl[128];
 char dbgp[32];strncpy(dbgp,app_debug_playurl,30);dbgp[30]=0;draw_str(4,200,CLR_RED,dbgp);
@@ -399,6 +400,7 @@ default:break;
 }
 return 0;
 }
+
 
 
 
