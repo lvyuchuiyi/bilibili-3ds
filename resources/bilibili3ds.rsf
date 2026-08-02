@@ -16,7 +16,7 @@ AccessControlInfo:
   CoreVersion: 2
   DescVersion: 2
   ReleaseKernelMajor: "02"
-  ReleaseKernelMinor: "33"
+  ReleaseKernelMinor: "44"
 
   FileSystemAccess:
     - DirectSdmc
@@ -33,6 +33,7 @@ AccessControlInfo:
   DisableDebug: false
   CanWriteSharedPage: true
   CanUseNonAlphabetAndNumber: true
+  CanShareDeviceMemory: true
   PermitMainFunctionArgument: true
   CpuSpeed: 268MHz
   EnableL2Cache: false
@@ -84,4 +85,14 @@ SystemControlInfo:
   SaveDataSize: 0KB
   RemasterVersion: 0
   StackSize: 0x100000
+
+  Dependency:
+    ac: 0x0004013000002402
+    cfg: 0x0004013000001702
+    gsp: 0x0004013000001c02
+    hid: 0x0004013000001d02
+    ptm: 0x0004013000002202
+    socket: 0x0004013000002e02
+    mvd: 0x0004013000003d02
+
 
