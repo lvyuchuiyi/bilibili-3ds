@@ -217,6 +217,18 @@ draw_str(TOP_W/2-20,167,CLR_W,"Play");
 static void render_playing(player_info_t *p){
 (void)p;
 extern void player_render(void);
+extern char app_debug_playurl[128];
+if(strncmp(app_debug_playurl,"MVD:HANG",8)==0){
+draw_rect(0,0,TOP_W,TOP_H,C2D_Color32(0x00,0x00,0x00,0xFF));
+draw_str(TOP_W/2-130,TOP_H/2-10,CLR_RED,"MVD not supported in emulator");
+draw_str(TOP_W/2-80,TOP_H/2+16,CLR_TL,"B - Back");
+return;
+}
+player_render();
+draw_str(TOP_W/2-80,TOP_H-20,CLR_TL,"B-Stop X-Pause");
+}
+(void)p;
+extern void player_render(void);
 player_render();
 draw_str(TOP_W/2-80,TOP_H-20,CLR_TL,"B-Stop X-Pause");
 }

@@ -132,6 +132,10 @@ int main(void) {
         if (app_load_state == 1 && osGetTime() - load_start_tick > 15000) {
             app_load_timed_out = 1;
             app_loading = 0;
+            /* MVD init hangs in Azahar (not emulated) */
+            if (strncmp(app_debug_playurl, "STEP:INIT", 9) == 0) {
+                strcpy(app_debug_playurl, "MVD:HANG");
+            }
         }
 
         hidScanInput();
@@ -195,6 +199,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 
