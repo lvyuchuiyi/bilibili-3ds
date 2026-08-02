@@ -227,11 +227,6 @@ return;
 player_render();
 draw_str(TOP_W/2-80,TOP_H-20,CLR_TL,"B-Stop X-Pause");
 }
-(void)p;
-extern void player_render(void);
-player_render();
-draw_str(TOP_W/2-80,TOP_H-20,CLR_TL,"B-Stop X-Pause");
-}
 
 /* ===== Bottom screen renderers ===== */
 static void render_keyboard(const char *text,int shift){
