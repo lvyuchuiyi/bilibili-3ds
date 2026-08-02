@@ -53,12 +53,19 @@ static void load_thread_func(void *arg) {
             if (pu) {
                 strncpy(app_debug_playurl, pu, sizeof(app_debug_playurl) - 1);
                 app_debug_playurl[sizeof(app_debug_playurl) - 1] = 0;
-                strcpy(app_debug_playurl, "STEP:PLAY");
-                if (player_init() == 0 && player_load(pu) == 0) {
-                    state.current_screen = SCREEN_PLAYING;
-                    strcpy(app_debug_playurl, "STEP:OK");
+                strcpy(app_debug_playurl, "STEP:INIT");
+                int init_ret = player_init();
+                if (init_ret == 0) {
+                    strcpy(app_debug_playurl, "STEP:LOAD");
+                    int load_ret = player_load(pu);
+                    if (load_ret == 0) {
+                        state.current_screen = SCREEN_PLAYING;
+                        strcpy(app_debug_playurl, "STEP:OK");
+                    } else {
+                        snprintf(app_debug_playurl, sizeof(app_debug_playurl), "LOADFAIL:%d", load_ret);
+                    }
                 } else {
-                    strcpy(app_debug_playurl, "STEP:PLAYFAIL");
+                    snprintf(app_debug_playurl, sizeof(app_debug_playurl), "INITFAIL:%d", init_ret);
                 }
                 free(pu);
             } else {
@@ -188,6 +195,7 @@ int main(void) {
     ui_exit();
     return 0;
 }
+
 
 
 

@@ -11,6 +11,7 @@ int net_debug_http_status = 0; /* HTTP status code */
 int net_debug_stage = 0;       /* 0=start 1=context 2=request 3=status 4=download 5=done */
 char net_debug_raw[64] = "";         /* first bytes of response */
 int net_debug_sslc_ret = 0;          /* last download result */
+int net_debug_data_len = 0;              /* bytes downloaded */
 
 static bool httpc_initialized = false;
 
@@ -114,6 +115,7 @@ int http_get(const char *url, http_response_t *resp) {
         break;
     }
     resp->buf[resp->data_len] = '\0';
+    net_debug_data_len = resp->data_len;
 
     /* Save first bytes for debug */
     strncpy(net_debug_raw, resp->buf, sizeof(net_debug_raw) - 1);
