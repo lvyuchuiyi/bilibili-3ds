@@ -5,6 +5,8 @@ BasicInfo:
 
 RomFs:
   RootPath: romfs
+  Reject:
+    - "*.ttf"
 
 TitleInfo:
   Category: Application
